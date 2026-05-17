@@ -1,0 +1,68 @@
+[
+  {
+    "id": "xianxia_1",
+    "title": "ระบบจำลองวิถีเซียน",
+    "subtitle": "ภาค แดนเซียน",
+    "description": "เด็กหนุ่มจากหมู่บ้านเล็กๆ ที่ได้พบเทพีไม่รู้จัก ในวันที่เขาคิดว่าจะเป็นวันธรรมดา บนทางเขาเข้ามาในแหล่งการฝึกฝน เพื่อก้าวสู่จุดสูงสุดของเหล่าเซียน",
+    "coverUrl": "https://pub-8fca2b7c08c44b409a2ad87721377e05.r2.dev/Noval%20Xinhua/Simu.png",
+    "episodes": [
+      {
+        "id": "ep1",
+        "title": "กำเกิดหลีฝาน",
+        "epNum": 1,
+        "audioUrl": "https://pub-8fca2b7c08c44b409a2ad87721377e05.r2.dev/Noval%20Xinhua/Mp3%20LiFan.MP3"
+      }
+    ]
+  },
+  {
+    "id": "series_2",
+    "title": "สู่เส้นทางเซียน ภาคแดนเซียน",
+    "subtitle": "ภาคแดนเซียน",
+    "description": "",
+    "coverUrl": "https://pub-8fca2b7c08c44b409a2ad87721377e05.r2.dev/Noval%20Xinhua/DRN.PNG",
+    "episodes": [
+      {
+        "id": "ep1",
+        "title": "ตอนที่ 1-10",
+        "epNum": 1,
+        "audioUrl": "https://drive.google.com/uc?export=download&id=1SGL0-KPatr3lgbB-KxztZvRlNu0ismWM"
+      }
+    ]
+  },
+  {
+    "id": "series_3",
+    "title": "ห้วงภพอนธการ",
+    "subtitle": "",
+    "description": "ในโลกที่นับถือผู้ฝึกยุทธเป็นใหญ่ โชคชะตาของสือมู่ได้ถูกลิขิตให้แตกต่างกับผู้อื่น",
+    "coverUrl": "https://pub-8fca2b7c08c44b409a2ad87721377e05.r2.dev/Noval%20Xinhua/5F08A28F-D033-4B23-85D0-F33C2EA73D4D.PNG",
+    "episodes": [
+      {
+        "id": "ep1",
+        "title": "ตอนที่ 1-20",
+        "epNum": 1,
+        "audioUrl": "https://pub-8fca2b7c08c44b409a2ad87721377e05.r2.dev/Noval%20Xinhua/Pan1-20.MP3"
+      },
+      {
+        "id": "ep2",
+        "title": "ตอนที่ 21-40",
+        "epNum": 2,
+        "audioUrl": "https://pub-8fca2b7c08c44b409a2ad87721377e05.r2.dev/Noval%20Xinhua/Pan40.m4a"
+      }
+    ]
+  },
+  {
+    "id": "series_4",
+    "title": "สรุปสู่เส้นทางเซียน",
+    "subtitle": "凡人修仙传",
+    "description": "มนุษย์ยุวชน ร่างกายมีรากเหง้าแห่งตบะกลับไม่ล่วงรู้ เพื่อให้ครอบครัวมีชีวิตความเป็นอยู่ที่ดีขึ้น จึงก้าวเข้าสู่เส้นทางการฝึกเซียน",
+    "coverUrl": "https://pub-8fca2b7c08c44b409a2ad87721377e05.r2.dev/Noval%20Xinhua/DRM1.png",
+    "episodes": [
+      {
+        "id": "ep1",
+        "title": "สรุปตอนที่ 1-400",
+        "epNum": 1,
+        "audioUrl": "https://pub-8fca2b7c08c44b409a2ad87721377e05.r2.dev/Noval%20Xinhua/RM1-400.MP3"
+      }
+    ]
+  }
+]

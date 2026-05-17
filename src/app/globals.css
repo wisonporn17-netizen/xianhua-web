@@ -1,0 +1,88 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #0A0612;
+  --purple: #8B5CF6;
+  --gold: #D4AF37;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #0A0612;
+  color: #fff;
+  font-family: 'Noto Sans Thai', 'Sarabun', system-ui, sans-serif;
+  min-height: 100vh;
+}
+
+/* ─── Audio Slider ─────────────────────────────────── */
+.audio-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 9999px;
+  outline: none;
+  cursor: pointer;
+  transition: height 0.15s;
+}
+
+.audio-slider:hover {
+  height: 8px;
+}
+
+.audio-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #8B5CF6;
+  cursor: pointer;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.25);
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.audio-slider::-webkit-slider-thumb:hover {
+  box-shadow: 0 0 0 6px rgba(139, 92, 246, 0.35);
+  transform: scale(1.15);
+}
+
+.audio-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border: none;
+  border-radius: 50%;
+  background: #8B5CF6;
+  cursor: pointer;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.25);
+}
+
+/* ─── Scrollbar ────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #130B1E;
+}
+::-webkit-scrollbar-thumb {
+  background: #2D1B4E;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #8B5CF6;
+}
+
+/* ─── Selection ────────────────────────────────────── */
+::selection {
+  background: rgba(139, 92, 246, 0.4);
+  color: #fff;
+}
