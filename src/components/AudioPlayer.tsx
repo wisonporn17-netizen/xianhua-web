@@ -2,15 +2,18 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { formatTime } from '@/lib/utils';
+import { supabase } from '@/lib/supabase';
 import Image from 'next/image';
 
 interface AudioPlayerProps {
   audioUrl: string;
   title: string;
   coverUrl?: string;
+  novelId?: string;
+  episodeId?: string;
 }
 
-export default function AudioPlayer({ audioUrl, title, coverUrl }: AudioPlayerProps) {
+export default function AudioPlayer({ audioUrl, title, coverUrl, novelId, episodeId }: AudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -18,6 +21,8 @@ export default function AudioPlayer({ audioUrl, title, coverUrl }: AudioPlayerPr
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const isDragging = useRef(false);
+  const historyId = useRef<string | null>(null);
+  const saveTimer = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -28,7 +33,7 @@ export default function AudioPlayer({ audioUrl, title, coverUrl }: AudioPlayerPr
     const onWaiting = () => setIsLoading(true);
     const onPlaying = () => setIsLoading(false);
     const onEnded = () => setIsPlaying(false);
-    const onError = () => { setError('ไม่สามารถโหลดไฟล์เสียงได้ กรุณาตรวจสอบ URL ใน novels.json'); setIsLoading(false); };
+    const onError = () => { setError('ไม่สามารถโหลดไฟล์เสียงได้'); setIsLoading(false); };
     audio.addEventListener('timeupdate', onTimeUpdate);
     audio.addEventListener('loadedmetadata', onLoadedMetadata);
     audio.addEventListener('canplay', onCanPlay);
@@ -47,11 +52,67 @@ export default function AudioPlayer({ audioUrl, title, coverUrl }: AudioPlayerPr
     };
   }, []);
 
+  // โหลด position ที่หยุดไว้
+  useEffect(() => {
+    if (!novelId || !episodeId) return;
+    const loadPosition = async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) return;
+      const { data } = await supabase
+        .from('listening_history')
+        .select('id, playback_position')
+        .eq('user_id', userData.user.id)
+        .eq('episode_id', episodeId)
+        .order('listened_at', { ascending: false })
+        .limit(1)
+        .single();
+      if (data && data.playback_position > 0) {
+        historyId.current = data.id;
+        const audio = audioRef.current;
+        if (audio) audio.currentTime = data.playback_position;
+        setCurrentTime(data.playback_position);
+      }
+    };
+    loadPosition();
+  }, [novelId, episodeId]);
+
+  const recordHistory = async () => {
+    if (!novelId || !episodeId) return;
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) return;
+    const { data } = await supabase.from('listening_history').insert({
+      user_id: userData.user.id,
+      novel_id: novelId,
+      episode_id: episodeId,
+      playback_position: audioRef.current?.currentTime || 0,
+    }).select().single();
+    if (data) historyId.current = data.id;
+  };
+
+  const savePosition = async () => {
+    if (!historyId.current || !audioRef.current) return;
+    await supabase.from('listening_history')
+      .update({ playback_position: audioRef.current.currentTime })
+      .eq('id', historyId.current);
+  };
+
   const togglePlay = async () => {
     const audio = audioRef.current;
     if (!audio) return;
-    if (isPlaying) { audio.pause(); setIsPlaying(false); }
-    else { try { await audio.play(); setIsPlaying(true); } catch { setError('ไม่สามารถเล่นไฟล์เสียงได้'); } }
+    if (isPlaying) {
+      audio.pause();
+      setIsPlaying(false);
+      await savePosition();
+      if (saveTimer.current) clearInterval(saveTimer.current);
+    } else {
+      try {
+        await audio.play();
+        setIsPlaying(true);
+        if (!historyId.current) await recordHistory();
+        // บันทึก position ทุก 10 วินาที
+        saveTimer.current = setInterval(savePosition, 10000);
+      } catch { setError('ไม่สามารถเล่นไฟล์เสียงได้'); }
+    }
   };
 
   const handleSeekInput = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -78,20 +139,18 @@ export default function AudioPlayer({ audioUrl, title, coverUrl }: AudioPlayerPr
   return (
     <div className="w-full max-w-md mx-auto">
       <audio ref={audioRef} src={audioUrl} preload="metadata" />
-
       <div className="bg-xh-card rounded-3xl p-8 border border-xh-border shadow-2xl shadow-xh-purple/10">
-        {/* Cover Image or Orb */}
         <div className="flex justify-center mb-6">
           {coverUrl ? (
             <div className="relative w-28 h-28 rounded-2xl overflow-hidden shadow-lg"
-              style={{ boxShadow: isPlaying ? '0 0 40px rgba(139,92,246,0.5), 0 0 80px rgba(139,92,246,0.2)' : '0 0 20px rgba(139,92,246,0.2)', transition: 'box-shadow 0.5s' }}>
+              style={{ boxShadow: isPlaying ? '0 0 40px rgba(139,92,246,0.5)' : '0 0 20px rgba(139,92,246,0.2)', transition: 'box-shadow 0.5s' }}>
               <Image src={coverUrl} alt={title} fill className="object-cover" />
               {isPlaying && <span className="absolute inset-0 rounded-2xl border-2 border-xh-purple/40 animate-ping" />}
             </div>
           ) : (
             <div className="relative w-28 h-28 rounded-full flex items-center justify-center"
-              style={{ background: 'radial-gradient(circle at 35% 35%, #A78BFA, #5B21B6 60%, #2D1B4E)', boxShadow: isPlaying ? '0 0 40px rgba(139,92,246,0.5), 0 0 80px rgba(139,92,246,0.2)' : '0 0 20px rgba(139,92,246,0.2)', transition: 'box-shadow 0.5s' }}>
-              <span className="text-xh-gold text-4xl select-none" style={{ textShadow: '0 0 20px rgba(212,175,55,0.6)' }}>✦</span>
+              style={{ background: 'radial-gradient(circle at 35% 35%, #A78BFA, #5B21B6 60%, #2D1B4E)', boxShadow: isPlaying ? '0 0 40px rgba(139,92,246,0.5)' : '0 0 20px rgba(139,92,246,0.2)', transition: 'box-shadow 0.5s' }}>
+              <span className="text-xh-gold text-4xl select-none">✦</span>
               {isPlaying && <span className="absolute inset-0 rounded-full border-2 border-xh-purple/40 animate-ping" />}
             </div>
           )}
@@ -103,7 +162,7 @@ export default function AudioPlayer({ audioUrl, title, coverUrl }: AudioPlayerPr
         <h2 className="text-white text-center font-semibold text-base leading-snug mb-8 px-2 line-clamp-2">{title}</h2>
 
         {error ? (
-          <div className="bg-red-900/30 border border-red-500/40 rounded-xl p-4 text-red-300 text-center text-sm leading-relaxed">{error}</div>
+          <div className="bg-red-900/30 border border-red-500/40 rounded-xl p-4 text-red-300 text-center text-sm">{error}</div>
         ) : (
           <>
             <div className="mb-6">
@@ -120,14 +179,14 @@ export default function AudioPlayer({ audioUrl, title, coverUrl }: AudioPlayerPr
             </div>
 
             <div className="flex items-center justify-center gap-8">
-              <button onClick={() => skip(-10)} aria-label="ย้อนหลัง 10 วินาที" className="flex flex-col items-center gap-1.5 text-gray-400 hover:text-xh-purple2 active:scale-95 transition-all">
+              <button onClick={() => skip(-10)} className="flex flex-col items-center gap-1.5 text-gray-400 hover:text-xh-purple2 active:scale-95 transition-all">
                 <div className="w-11 h-11 rounded-full border border-xh-border hover:border-xh-purple/50 flex items-center justify-center transition-colors">
                   <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10" /><path d="M3.51 15a9 9 0 1 0 .49-3.83" /></svg>
                 </div>
                 <span className="text-[11px] font-medium">-10s</span>
               </button>
 
-              <button onClick={togglePlay} disabled={isLoading} aria-label={isPlaying ? 'หยุดชั่วคราว' : 'เล่น'}
+              <button onClick={togglePlay} disabled={isLoading}
                 className="w-[72px] h-[72px] rounded-full flex items-center justify-center text-white transition-all active:scale-95 disabled:opacity-40"
                 style={{ background: 'linear-gradient(135deg, #8B5CF6, #6D28D9)', boxShadow: '0 4px 24px rgba(109,40,217,0.5)' }}>
                 {isLoading ? (
@@ -139,7 +198,7 @@ export default function AudioPlayer({ audioUrl, title, coverUrl }: AudioPlayerPr
                 )}
               </button>
 
-              <button onClick={() => skip(10)} aria-label="ข้ามไป 10 วินาที" className="flex flex-col items-center gap-1.5 text-gray-400 hover:text-xh-purple2 active:scale-95 transition-all">
+              <button onClick={() => skip(10)} className="flex flex-col items-center gap-1.5 text-gray-400 hover:text-xh-purple2 active:scale-95 transition-all">
                 <div className="w-11 h-11 rounded-full border border-xh-border hover:border-xh-purple/50 flex items-center justify-center transition-colors">
                   <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10" /><path d="M20.49 15a9 9 0 1 1-.49-3.83" /></svg>
                 </div>

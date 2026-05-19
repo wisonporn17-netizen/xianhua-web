@@ -47,7 +47,7 @@ export default async function EpisodePage({ params }: Props) {
             <h1 className="text-white font-bold text-lg leading-snug">{episode.title}</h1>
           </div>
 
-          <AudioPlayer audioUrl={episode.audio_url} title={episode.title} coverUrl={novel.cover_url} />
+          <AudioPlayer audioUrl={episode.audio_url} title={episode.title} coverUrl={novel.cover_url} novelId={novel.id} episodeId={episode.id} />
 
           <div className="flex gap-3 mt-6">
             {prevEpisode ? (
