@@ -48,7 +48,7 @@ export default function AudioPlayer({ audioUrl, title, coverUrl, novelId, episod
           .eq('user_id', userData.user.id)
           .eq('episode_id', episodeId)
           .single();
-        if (data?.playback_position > 5) startTime = data.playback_position;
+        if (data?.playback_position && data.playback_position > 5) startTime = data.playback_position;
       }
       play({ novelId, episodeId, title, novelTitle, coverUrl, audioUrl }, startTime);
     };
