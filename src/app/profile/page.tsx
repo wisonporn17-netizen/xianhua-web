@@ -7,18 +7,32 @@ import { useRouter } from 'next/navigation'
 
 export default function ProfilePage() {
   const [user, setUser] = useState<any>(null)
+  const [isPremium, setIsPremium] = useState(false)
   const [history, setHistory] = useState<any[]>([])
   const [favorites, setFavorites] = useState<any[]>([])
   const [tab, setTab] = useState<'history' | 'favorites' | 'account'>('history')
   const router = useRouter()
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
+    const init = async () => {
+      const { data } = await supabase.auth.getUser()
       if (!data.user) { router.push('/auth'); return }
       setUser(data.user)
+
+      // เช็ค Premium
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('is_premium, premium_until')
+        .eq('id', data.user.id)
+        .single()
+      if (profile?.is_premium && new Date(profile.premium_until) > new Date()) {
+        setIsPremium(true)
+      }
+
       loadHistory(data.user.id)
       loadFavorites(data.user.id)
-    })
+    }
+    init()
   }, [])
 
   const loadHistory = async (uid: string) => {
@@ -50,7 +64,7 @@ export default function ProfilePage() {
     router.push('/')
   }
 
-  const tabBtn = (t: string, label: string) =>
+  const tabBtn = (t: string) =>
     `px-4 py-2 text-sm rounded-lg transition-all ${tab === t ? 'bg-purple-600 text-white' : 'text-gray-400 hover:text-white'}`
 
   if (!user) return null
@@ -66,15 +80,23 @@ export default function ProfilePage() {
           </div>
           <div className="flex-1">
             <p className="text-white font-semibold">{user.email}</p>
-            <p className="text-gray-400 text-xs mt-0.5">สมาชิกทั่วไป</p>
+            <div className="flex items-center gap-2 mt-1">
+              {isPremium ? (
+                <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">
+                  ⭐ Premium
+                </span>
+              ) : (
+                <span className="text-gray-400 text-xs">สมาชิกทั่วไป</span>
+              )}
+            </div>
           </div>
         </div>
 
         {/* Tabs */}
         <div className="flex gap-2 mb-6">
-          <button className={tabBtn('history', 'ประวัติ')} onClick={() => setTab('history')}>🕐 ประวัติการฟัง</button>
-          <button className={tabBtn('favorites', 'โปรด')} onClick={() => setTab('favorites')}>❤️ รายการโปรด</button>
-          <button className={tabBtn('account', 'บัญชี')} onClick={() => setTab('account')}>⚙️ บัญชี</button>
+          <button className={tabBtn('history')} onClick={() => setTab('history')}>🕐 ประวัติการฟัง</button>
+          <button className={tabBtn('favorites')} onClick={() => setTab('favorites')}>❤️ รายการโปรด</button>
+          <button className={tabBtn('account')} onClick={() => setTab('account')}>⚙️ บัญชี</button>
         </div>
 
         {/* History */}
@@ -122,8 +144,17 @@ export default function ProfilePage() {
             </div>
             <div className="p-5 bg-white/5 rounded-xl border border-white/10">
               <p className="text-gray-400 text-sm mb-1">แพ็กเกจ</p>
-              <p className="text-white">สมาชิกทั่วไป (ฟรี)</p>
+              <p className="text-white">{isPremium ? '⭐ Premium — ฟังได้ทุกตอน' : 'สมาชิกทั่วไป (ฟรี)'}</p>
             </div>
+            {!isPremium && (
+              <div className="p-5 bg-purple-900/20 rounded-xl border border-purple-500/30">
+                <p className="text-purple-300 text-sm font-medium mb-1">อัปเกรดเป็น Premium</p>
+                <p className="text-gray-400 text-xs mb-3">ฟังได้ทุกตอน ไม่มีโฆษณา</p>
+                <Link href="/auth" className="text-xs px-4 py-2 rounded-full bg-purple-600 hover:bg-purple-500 text-white transition-all">
+                  สมัคร Premium
+                </Link>
+              </div>
+            )}
             <button onClick={handleLogout} className="w-full py-3 rounded-xl bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-600/30 transition-all">
               ออกจากระบบ
             </button>

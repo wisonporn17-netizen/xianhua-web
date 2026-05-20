@@ -16,23 +16,37 @@ interface Props {
 
 export default function LockedEpisode({ isFree, ...props }: Props) {
   const [user, setUser] = useState<any>(null)
+  const [isPremium, setIsPremium] = useState(false)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user)
+    const checkUser = async () => {
+      const { data: userData } = await supabase.auth.getUser()
+      if (userData.user) {
+        setUser(userData.user)
+        // เช็ค Premium
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('is_premium, premium_until')
+          .eq('id', userData.user.id)
+          .single()
+        if (profile?.is_premium && new Date(profile.premium_until) > new Date()) {
+          setIsPremium(true)
+        }
+      }
       setLoading(false)
-    })
+    }
+    checkUser()
   }, [])
 
   if (loading) return <div className="text-center text-gray-500 py-20">กำลังโหลด...</div>
 
-  // ถ้าฟรี หรือ login แล้ว -> เล่นได้
-  if (isFree || user) {
+  // ฟรี หรือ Premium หรือ login แล้ว -> เล่นได้
+  if (isFree || isPremium || user) {
     return <AudioPlayer {...props} />
   }
 
-  // ไม่ login + ไม่ใช่ตอนฟรี -> แสดงให้ login
+  // ไม่ login -> แสดงให้ login
   return (
     <div className="bg-xh-card rounded-3xl p-8 border border-yellow-500/20 text-center">
       <div className="text-6xl mb-4">🔒</div>
