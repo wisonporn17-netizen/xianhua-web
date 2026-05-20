@@ -19,7 +19,7 @@ export default async function EpisodePage({ params }: Props) {
 
   if (!novel) notFound();
 
-  const episodes = novel.episodes || [];
+  const episodes = (novel.episodes || []).sort((a: any, b: any) => a.ep_num - b.ep_num);
   const episodeIndex = episodes.findIndex((e: any) => e.id === params.episodeId);
   if (episodeIndex === -1) notFound();
 
@@ -28,7 +28,7 @@ export default async function EpisodePage({ params }: Props) {
   const nextEpisode = episodes[episodeIndex + 1] ?? null;
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pb-24">
       <Header />
 
       <div className="max-w-5xl mx-auto px-4 pt-6">
@@ -47,7 +47,14 @@ export default async function EpisodePage({ params }: Props) {
             <h1 className="text-white font-bold text-lg leading-snug">{episode.title}</h1>
           </div>
 
-          <AudioPlayer audioUrl={episode.audio_url} title={episode.title} coverUrl={novel.cover_url} novelId={novel.id} episodeId={episode.id} />
+          <AudioPlayer
+            audioUrl={episode.audio_url}
+            title={episode.title}
+            coverUrl={novel.cover_url}
+            novelId={novel.id}
+            episodeId={episode.id}
+            novelTitle={novel.title}
+          />
 
           <div className="flex gap-3 mt-6">
             {prevEpisode ? (

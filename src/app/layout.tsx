@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { PlayerProvider } from '@/context/PlayerContext';
+import MiniPlayer from '@/components/MiniPlayer';
 
 export const metadata: Metadata = {
   title: 'เซียนหัว Xianhua Audio',
@@ -18,7 +20,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="bg-xh-bg text-white antialiased">
-        {children}
+        <PlayerProvider>
+          {children}
+          <MiniPlayer />
+        </PlayerProvider>
       </body>
     </html>
   );
