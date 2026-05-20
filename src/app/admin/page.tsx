@@ -10,7 +10,7 @@ const empty = (): Novel => ({ id: '', title: '', subtitle: '', description: '', 
 export default function AdminPage() {
   const [novels, setNovels] = useState<Novel[]>([])
   const [form, setForm] = useState<Novel>(empty())
-  const [epForm, setEpForm] = useState({ id: '', title: '', ep_num: 1, audio_url: '' })
+  const [epForm, setEpForm] = useState({ id: '', title: '', ep_num: 1, audio_url: '', is_free: false })
   const [editing, setEditing] = useState<string | null>(null)
   const [msg, setMsg] = useState('')
 
@@ -44,11 +44,11 @@ export default function AdminPage() {
     if (!epForm.id || !epForm.title) return setMsg('กรุณาใส่ ID และชื่อตอน')
     const { error } = await supabase.from('episodes').upsert({
       id: epForm.id, novel_id: novelId, title: epForm.title,
-      ep_num: epForm.ep_num, audio_url: epForm.audio_url
+      ep_num: epForm.ep_num, audio_url: epForm.audio_url, is_free: epForm.is_free
     })
     if (error) return setMsg('Error: ' + error.message)
     setMsg('✅ บันทึกตอนสำเร็จ')
-    setEpForm({ id: '', title: '', ep_num: 1, audio_url: '' })
+    setEpForm({ id: '', title: '', ep_num: 1, audio_url: '', is_free: false })
     setEditing(null)
     load()
   }
