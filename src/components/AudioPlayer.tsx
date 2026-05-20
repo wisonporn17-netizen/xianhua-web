@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { formatTime } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
 import { usePlayer } from '@/context/PlayerContext';
@@ -17,54 +17,64 @@ interface AudioPlayerProps {
 
 export default function AudioPlayer({ audioUrl, title, coverUrl, novelId, episodeId, novelTitle }: AudioPlayerProps) {
   const { track, isPlaying, currentTime, duration, isLoading, play, togglePlay, seek, skip } = usePlayer();
+  const userIdRef = useRef<string | null>(null);
+  const currentTimeRef = useRef(0);
 
-  // โหลด position ที่หยุดไว้แล้วเล่นอัตโนมัติ
+  // sync currentTime ไปยัง ref เพื่อใช้ใน timer
+  useEffect(() => {
+    currentTimeRef.current = currentTime;
+  }, [currentTime]);
+
+  // โหลด user id
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      userIdRef.current = data.user?.id || null;
+    });
+  }, []);
+
+  // โหลดและเล่น
   useEffect(() => {
     if (!novelId || !episodeId || !novelTitle) return;
+    if (track?.episodeId === episodeId) return;
+
     const loadAndPlay = async () => {
       const { data: userData } = await supabase.auth.getUser();
       let startTime = 0;
       if (userData.user) {
+        userIdRef.current = userData.user.id;
         const { data } = await supabase
           .from('listening_history')
           .select('playback_position')
           .eq('user_id', userData.user.id)
           .eq('episode_id', episodeId)
-          .order('listened_at', { ascending: false })
-          .limit(1)
           .single();
-        if (data?.playback_position > 0) startTime = data.playback_position;
+        if (data?.playback_position > 5) startTime = data.playback_position;
       }
       play({ novelId, episodeId, title, novelTitle, coverUrl, audioUrl }, startTime);
     };
     loadAndPlay();
   }, [episodeId]);
 
-  // บันทึก position ทุก 10 วินาที
+  // บันทึก position ทุก 5 วินาที — ไม่มี currentTime ใน dependency
   useEffect(() => {
     if (!isPlaying || !novelId || !episodeId) return;
-    const savePosition = async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) return;
-      const { data: existing } = await supabase
-        .from('listening_history')
-        .select('id')
-        .eq('user_id', userData.user.id)
-        .eq('episode_id', episodeId)
-        .order('listened_at', { ascending: false })
-        .limit(1)
-        .single();
-      if (existing) {
-        await supabase.from('listening_history').update({ playback_position: currentTime }).eq('id', existing.id);
-      } else {
-        await supabase.from('listening_history').insert({
-          user_id: userData.user.id, novel_id: novelId, episode_id: episodeId, playback_position: currentTime
-        });
-      }
-    };
-    const timer = setInterval(savePosition, 10000);
+    if (track?.episodeId !== episodeId) return;
+    if (!userIdRef.current) return;
+
+    const timer = setInterval(async () => {
+      const pos = currentTimeRef.current;
+      if (pos < 1) return;
+      await supabase.from('listening_history').upsert({
+        user_id: userIdRef.current,
+        novel_id: novelId,
+        episode_id: episodeId,
+        playback_position: pos,
+        listened_at: new Date().toISOString(),
+      }, { onConflict: 'user_id,episode_id' });
+    }, 5000);
+
     return () => clearInterval(timer);
-  }, [isPlaying, episodeId]);
+  }, [isPlaying, episodeId, track?.episodeId]);
 
   const isCurrentTrack = track?.episodeId === episodeId;
   const displayTime = isCurrentTrack ? currentTime : 0;
@@ -111,7 +121,7 @@ export default function AudioPlayer({ audioUrl, title, coverUrl, novelId, episod
 
         <div className="flex items-center justify-center gap-8">
           <button onClick={() => skip(-10)} className="flex flex-col items-center gap-1.5 text-gray-400 hover:text-xh-purple2 active:scale-95 transition-all">
-            <div className="w-11 h-11 rounded-full border border-xh-border hover:border-xh-purple/50 flex items-center justify-center transition-colors">
+            <div className="w-11 h-11 rounded-full border border-xh-border hover:border-xh-purple/50 flex items-center justify-center">
               <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10" /><path d="M3.51 15a9 9 0 1 0 .49-3.83" /></svg>
             </div>
             <span className="text-[11px] font-medium">-10s</span>
@@ -130,7 +140,7 @@ export default function AudioPlayer({ audioUrl, title, coverUrl, novelId, episod
           </button>
 
           <button onClick={() => skip(10)} className="flex flex-col items-center gap-1.5 text-gray-400 hover:text-xh-purple2 active:scale-95 transition-all">
-            <div className="w-11 h-11 rounded-full border border-xh-border hover:border-xh-purple/50 flex items-center justify-center transition-colors">
+            <div className="w-11 h-11 rounded-full border border-xh-border hover:border-xh-purple/50 flex items-center justify-center">
               <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10" /><path d="M20.49 15a9 9 0 1 1-.49-3.83" /></svg>
             </div>
             <span className="text-[11px] font-medium">+10s</span>
