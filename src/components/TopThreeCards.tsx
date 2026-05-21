@@ -25,8 +25,8 @@ export default function TopThreeCards({ novels, playMap }: Props) {
   const [hovered, setHovered] = useState<number | null>(null)
 
   // จัด order: 2, 1, 3
-  const display = novels.length >= 3 ? [novels[1], novels[0], novels[2]] : novels
-  const ranks = [2, 1, 3]
+  const display = novels.slice(0, 3)
+  const ranks = [1, 2, 3]
 
   return (
     <div className="grid items-end gap-6 md:grid-cols-3">
