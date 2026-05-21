@@ -3,6 +3,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import Header from '@/components/Header';
 import { supabase } from '@/lib/supabase';
+import FavoriteButton from '@/components/FavoriteButton';
+import ShareButton from '@/components/ShareButton';
 
 export const revalidate = 0;
 
@@ -80,12 +82,8 @@ export default async function NovelPage({ params }: Props) {
                     ฟังตอนแรก
                   </Link>
                 )}
-                <button className="flex items-center gap-2 px-6 py-3 rounded-full border border-white/20 hover:border-white/40 text-white font-medium transition-all">
-                  ❤️ รายการโปรด
-                </button>
-                <button className="flex items-center gap-2 px-6 py-3 rounded-full border border-white/20 hover:border-white/40 text-white font-medium transition-all">
-                  🔗 แชร์
-                </button>
+                <FavoriteButton novelId={novel.id} />
+                <ShareButton title={novel.title} />
               </div>
             </div>
           </div>
