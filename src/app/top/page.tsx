@@ -79,7 +79,7 @@ export default async function TopPage() {
                 const firstEp = novel.episodes[0];
                 return (
                   <article key={novel.id}
-                    className={`group relative overflow-hidden rounded-3xl border transition-all ${isFirst ? 'border-yellow-400/70 shadow-[0_0_50px_rgba(250,204,21,.22)]' : 'border-white/10'} bg-white/[0.06]`}>
+                    className={`group relative overflow-hidden rounded-3xl border transition-all duration-300 ${isFirst ? 'border-yellow-400/70 shadow-[0_0_50px_rgba(250,204,21,.22)]' : 'border-white/10 hover:scale-110 hover:z-20 hover:border-yellow-400/70 hover:shadow-[0_0_50px_rgba(250,204,21,.22)]'} bg-white/[0.06]`}>
                     {novel.coverUrl && (
                       <img src={novel.coverUrl} alt={novel.title}
                         className={`w-full object-cover transition duration-500 group-hover:scale-105 ${isFirst ? 'h-[380px] md:h-[430px]' : 'h-[320px] md:h-[390px]'}`} />
@@ -87,8 +87,12 @@ export default async function TopPage() {
                     <div className="absolute inset-0 bg-gradient-to-t from-[#080811] via-[#080811]/45 to-transparent" />
 
                     {/* Rank badge */}
-                    <div className={`absolute left-5 top-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-white/20 bg-gradient-to-br ${accent} text-3xl font-black text-white shadow-2xl`}>
-                      {rank}
+                    <div className="absolute left-5 top-5 flex flex-col items-center">
+                      {rank === 1 && <div className="text-yellow-300 text-xl mb-0.5">★</div>}
+                      <div className={`flex h-14 w-14 items-center justify-center text-2xl font-black text-white shadow-2xl ${rank === 1 ? 'bg-gradient-to-b from-yellow-300 to-yellow-600' : rank === 2 ? 'bg-gradient-to-b from-slate-300 to-slate-500' : 'bg-gradient-to-b from-amber-500 to-amber-800'}`}
+                        style={{clipPath: 'polygon(50% 0%, 90% 20%, 100% 60%, 75% 100%, 25% 100%, 0% 60%, 10% 20%)'}}>
+                        {rank}
+                      </div>
                     </div>
 
                     {/* Episode count */}
