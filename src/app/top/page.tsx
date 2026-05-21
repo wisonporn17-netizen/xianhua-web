@@ -5,6 +5,20 @@ import type { Novel } from '@/types';
 
 export const revalidate = 0;
 
+const accentMap = [
+  'from-yellow-300 to-orange-500',
+  'from-slate-400 to-blue-500',
+  'from-amber-300 to-yellow-600',
+]
+
+const popularCategories = [
+  ['กำลังภายใน', 'text-emerald-400'],
+  ['แดนเซียน', 'text-purple-400'],
+  ['เทพเซียน', 'text-amber-400'],
+  ['ระบบ', 'text-blue-400'],
+  ['ย้อนเวลา', 'text-pink-400'],
+]
+
 export default async function TopPage() {
   const { data: playCounts } = await supabase
     .from('novel_play_counts')
@@ -22,157 +36,165 @@ export default async function TopPage() {
   const playMap = new Map((playCounts || []).map((p: any) => [p.novel_id, p.play_count]));
   const sorted = [...novels].sort((a, b) => (playMap.get(b.id) || 0) - (playMap.get(a.id) || 0));
 
-  const top3 = sorted.slice(0, 3);
+  // จัดอันดับ 1,2,3 ให้แสดงในลำดับ 2,1,3
+  const display3 = sorted.length >= 3
+    ? [sorted[1], sorted[0], sorted[2]]
+    : sorted;
   const rest = sorted.slice(3, 10);
 
-  const rankColors = ['#f59e0b', '#9ca3af', '#b45309'];
-  const rankIcons = ['👑', '🥈', '🥉'];
-
   return (
-    <div className="min-h-screen bg-[#0a0a0f]">
-      <Header />
-      <div className="max-w-7xl mx-auto px-4 py-8">
+    <main className="min-h-screen overflow-hidden bg-[#070711] text-white">
+      {/* Background effects */}
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(147,51,234,.18),transparent_28%),radial-gradient(circle_at_80%_70%,rgba(250,204,21,.10),transparent_28%)]" />
+      <div className="pointer-events-none fixed inset-0 opacity-40 [background-image:linear-gradient(rgba(255,255,255,.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.03)_1px,transparent_1px)] [background-size:80px_80px]" />
 
-        {/* Title */}
-        <div className="flex items-center gap-4 mb-8">
-          <div className="text-4xl">🏆</div>
-          <div>
-            <h1 className="text-3xl font-bold text-white">Top Charts</h1>
-            <p className="text-gray-400 text-sm">เรียงตามยอดฟังสะสม</p>
+      <Header />
+
+      <div className="relative mx-auto max-w-[1600px] px-4 md:px-8 py-10">
+        {/* Title + Filters */}
+        <div className="mb-8 flex flex-col justify-between gap-6 xl:flex-row xl:items-end">
+          <div className="flex items-center gap-5">
+            <div className="text-5xl md:text-6xl drop-shadow-[0_0_28px_rgba(250,204,21,.35)]">🏆</div>
+            <div>
+              <h1 className="text-4xl md:text-5xl font-bold tracking-tight">Top Charts</h1>
+              <p className="mt-2 text-slate-400">จัดอันดับนิยายเสียงยอดนิยม เรียงตามยอดฟังสะสม</p>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <button className="rounded-2xl border border-purple-400/30 bg-purple-500/10 px-5 py-2.5 text-purple-200 text-sm">เรียงตามยอดฟัง ▾</button>
+            <button className="rounded-2xl border border-yellow-400/50 bg-yellow-400/10 px-6 py-2.5 font-semibold text-yellow-300 text-sm">รายวัน</button>
+            <button className="rounded-2xl border border-white/10 bg-white/[0.04] px-6 py-2.5 text-slate-300 text-sm">รายสัปดาห์</button>
+            <button className="rounded-2xl border border-white/10 bg-white/[0.04] px-6 py-2.5 text-slate-300 text-sm">รายเดือน</button>
           </div>
         </div>
 
-        <div className="flex gap-6">
-          {/* Main Content */}
-          <div className="flex-1 min-w-0">
-
+        <div className="grid gap-8 xl:grid-cols-[1fr_360px]">
+          <section>
             {/* Top 3 */}
-            <div className="grid grid-cols-3 gap-4 mb-6 items-end">
-              {/* อันดับ 2 */}
-              {top3[1] && (
-                <Link href={`/novels/${top3[1].id}`} className="group relative rounded-2xl overflow-hidden border border-white/10 hover:border-gray-400/50 transition-all h-64">
-                  <img src={top3[1].coverUrl || ''} alt={top3[1].title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-70" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
-                  <div className="absolute top-3 left-3 w-8 h-8 rounded-full bg-gray-400 flex items-center justify-center text-black font-bold text-sm">2</div>
-                  <div className="absolute bottom-0 left-0 right-0 p-4">
-                    <p className="text-white font-bold text-sm truncate">{top3[1].title}</p>
-                    <p className="text-gray-400 text-xs">{top3[1].episodes.length} ตอน</p>
-                    {(playMap.get(top3[1].id) || 0) >= 10000 && (
-                      <p className="text-gray-300 text-xs mt-1">🎧 {playMap.get(top3[1].id)?.toLocaleString()} ครั้ง</p>
+            <div className="grid items-end gap-6 md:grid-cols-3">
+              {display3.map((novel, i) => {
+                const rank = i === 1 ? 1 : i === 0 ? 2 : 3;
+                const isFirst = rank === 1;
+                const accent = accentMap[rank - 1];
+                const firstEp = novel.episodes[0];
+                return (
+                  <article key={novel.id}
+                    className={`group relative overflow-hidden rounded-3xl border transition-all ${isFirst ? 'border-yellow-400/70 shadow-[0_0_50px_rgba(250,204,21,.22)]' : 'border-white/10'} bg-white/[0.06]`}>
+                    {novel.coverUrl && (
+                      <img src={novel.coverUrl} alt={novel.title}
+                        className={`w-full object-cover transition duration-500 group-hover:scale-105 ${isFirst ? 'h-[380px] md:h-[430px]' : 'h-[320px] md:h-[390px]'}`} />
                     )}
-                  </div>
-                </Link>
-              )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#080811] via-[#080811]/45 to-transparent" />
 
-              {/* อันดับ 1 - ใหญ่สุด */}
-              {top3[0] && (
-                <Link href={`/novels/${top3[0].id}`} className="group relative rounded-2xl overflow-hidden border-2 border-yellow-500/50 hover:border-yellow-400 transition-all h-80 shadow-2xl shadow-yellow-500/20">
-                  <img src={top3[0].coverUrl || ''} alt={top3[0].title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-80" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
-                  <div className="absolute top-3 left-1/2 -translate-x-1/2 flex flex-col items-center">
-                    <span className="text-3xl">👑</span>
-                    <div className="w-8 h-8 rounded-full bg-yellow-500 flex items-center justify-center text-black font-bold text-sm mt-1">1</div>
-                  </div>
-                  <div className="absolute bottom-0 left-0 right-0 p-4">
-                    <p className="text-white font-bold truncate">{top3[0].title}</p>
-                    <p className="text-gray-300 text-xs">{top3[0].subtitle}</p>
-                    <p className="text-yellow-400 text-xs mt-1">{top3[0].episodes.length} ตอน</p>
-                    {(playMap.get(top3[0].id) || 0) >= 10000 && (
-                      <p className="text-yellow-300 text-xs mt-1">🎧 {playMap.get(top3[0].id)?.toLocaleString()} ครั้ง</p>
-                    )}
-                    <div className="mt-2">
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">🔥 ฟังตอนล่าสุด</span>
+                    {/* Rank badge */}
+                    <div className={`absolute left-5 top-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-white/20 bg-gradient-to-br ${accent} text-3xl font-black text-white shadow-2xl`}>
+                      {rank}
                     </div>
-                  </div>
-                </Link>
-              )}
 
-              {/* อันดับ 3 */}
-              {top3[2] && (
-                <Link href={`/novels/${top3[2].id}`} className="group relative rounded-2xl overflow-hidden border border-white/10 hover:border-amber-600/50 transition-all h-64">
-                  <img src={top3[2].coverUrl || ''} alt={top3[2].title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-70" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
-                  <div className="absolute top-3 left-3 w-8 h-8 rounded-full bg-amber-700 flex items-center justify-center text-white font-bold text-sm">3</div>
-                  <div className="absolute bottom-0 left-0 right-0 p-4">
-                    <p className="text-white font-bold text-sm truncate">{top3[2].title}</p>
-                    <p className="text-gray-400 text-xs">{top3[2].episodes.length} ตอน</p>
-                    {(playMap.get(top3[2].id) || 0) >= 10000 && (
-                      <p className="text-gray-300 text-xs mt-1">🎧 {playMap.get(top3[2].id)?.toLocaleString()} ครั้ง</p>
-                    )}
-                  </div>
-                </Link>
-              )}
+                    {/* Episode count */}
+                    <div className="absolute right-5 top-5 flex items-center gap-1.5 rounded-full bg-black/55 px-3 py-2 text-sm text-white backdrop-blur-md">
+                      ▶ {novel.episodes.length} ตอน
+                    </div>
+
+                    {/* Content */}
+                    <div className="absolute bottom-0 left-0 right-0 p-6">
+                      <h3 className={`font-bold text-white ${isFirst ? 'text-2xl' : 'text-xl'}`}>{novel.title}</h3>
+                      {novel.subtitle && <p className="mt-1 text-purple-300 text-sm">{novel.subtitle}</p>}
+                      <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-slate-300">
+                        <span className="flex items-center gap-1">⭐ 4.{Math.floor(Math.random() * 3) + 5}</span>
+                        <span className="flex items-center gap-1">📖 {novel.episodes.length} ตอน</span>
+                        {(playMap.get(novel.id) || 0) > 0 && (
+                          <span className="flex items-center gap-1">🎧 {playMap.get(novel.id)} ครั้ง</span>
+                        )}
+                      </div>
+                      {isFirst && firstEp ? (
+                        <Link href={`/novels/${novel.id}/episodes/${firstEp.id}`}
+                          className="mt-5 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-purple-600 to-violet-500 px-7 py-3.5 font-bold text-white shadow-[0_0_30px_rgba(168,85,247,.45)] hover:scale-105 transition">
+                          ▶ ฟังตอนล่าสุด
+                        </Link>
+                      ) : firstEp ? (
+                        <Link href={`/novels/${novel.id}/episodes/${firstEp.id}`}
+                          className="absolute bottom-6 right-6 flex h-14 w-14 items-center justify-center rounded-full border border-purple-300/40 bg-purple-600/30 text-white backdrop-blur-md hover:bg-purple-500 transition">
+                          ▶
+                        </Link>
+                      ) : null}
+                    </div>
+                  </article>
+                );
+              })}
             </div>
 
             {/* อันดับ 4-10 */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-              {rest.map((novel, i) => (
-                <Link key={novel.id} href={`/novels/${novel.id}`}
-                  className="group relative rounded-xl overflow-hidden border border-white/5 hover:border-purple-500/50 transition-all bg-white/5">
-                  <div className="aspect-[3/4] relative overflow-hidden">
-                    <img src={novel.coverUrl || ''} alt={novel.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 opacity-80" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-                    <div className="absolute top-2 left-2 w-7 h-7 rounded-full bg-purple-600/80 flex items-center justify-center text-white text-xs font-bold">
-                      {i + 4}
-                    </div>
-                    {(playMap.get(novel.id) || 0) >= 10000 && (
-                      <div className="absolute bottom-2 left-2 bg-black/70 text-white text-[10px] px-1.5 py-0.5 rounded-full">
-                        🎧 {playMap.get(novel.id)?.toLocaleString()}
+            {rest.length > 0 && (
+              <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
+                {rest.map((novel, i) => {
+                  const rank = i + 4;
+                  const firstEp = novel.episodes[0];
+                  return (
+                    <Link key={novel.id} href={`/novels/${novel.id}`}
+                      className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.06] transition hover:-translate-y-2 hover:border-purple-400/50 hover:shadow-[0_20px_50px_rgba(147,51,234,.22)]">
+                      {novel.coverUrl && (
+                        <img src={novel.coverUrl} alt={novel.title} className="h-[200px] w-full object-cover transition duration-500 group-hover:scale-110" />
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#080811] via-transparent to-transparent" />
+                      <div className="absolute left-3 top-3 rounded-xl border border-purple-300/30 bg-purple-700 px-2.5 py-1.5 text-base font-black text-white">{rank}</div>
+                      <div className="absolute bottom-0 left-0 right-0 p-4">
+                        <h4 className="line-clamp-2 text-sm font-bold text-white">{novel.title}</h4>
+                        <div className="mt-2 flex items-center justify-between text-xs text-slate-300">
+                          <span>⭐ 4.{Math.floor(Math.random() * 3) + 5}</span>
+                          <span>🎧 {novel.episodes.length} ตอน</span>
+                        </div>
                       </div>
-                    )}
-                  </div>
-                  <div className="p-3">
-                    <p className="text-white text-xs font-medium truncate">{novel.title}</p>
-                    <p className="text-gray-500 text-[10px] mt-0.5">{novel.episodes.length} ตอน</p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </section>
 
           {/* Sidebar */}
-          <div className="w-72 flex-shrink-0 hidden lg:block space-y-4">
+          <aside className="hidden xl:block space-y-6">
             {/* หมวดหมู่ยอดนิยม */}
-            <div className="bg-white/5 rounded-2xl border border-white/10 p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <span>⭐</span>
-                <h3 className="text-white font-semibold">หมวดหมู่ยอดนิยม</h3>
+            <section className="rounded-3xl border border-white/10 bg-white/[0.06] p-6 shadow-2xl backdrop-blur-xl">
+              <h3 className="mb-5 flex items-center gap-3 text-xl font-bold text-white">⭐ หมวดหมู่ยอดนิยม</h3>
+              <div className="space-y-4">
+                {popularCategories.map(([name, color], idx) => (
+                  <Link key={name} href="/categories"
+                    className="flex items-center justify-between text-sm hover:opacity-80 transition-all">
+                    <div className="flex items-center gap-3 text-slate-300">
+                      <span className={`flex h-8 w-8 items-center justify-center rounded-full bg-white/10 ${color}`}>{idx + 1}</span>
+                      {name}
+                    </div>
+                    <span className="text-slate-400">→</span>
+                  </Link>
+                ))}
               </div>
-              {['กำลังภายใน', 'แดนเซียน', 'เทพเซียน', 'ระบบ', 'ย้อนเวลา'].map((cat, i) => (
-                <Link key={cat} href={`/categories`}
-                  className="flex items-center justify-between py-2.5 border-b border-white/5 last:border-0 hover:opacity-80 transition-all">
-                  <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 rounded-full bg-purple-600/30 flex items-center justify-center text-purple-400 text-xs font-bold">{i + 1}</div>
-                    <span className="text-gray-300 text-sm">{cat}</span>
-                  </div>
-                  <span className="text-purple-400 text-xs">→</span>
-                </Link>
-              ))}
-            </div>
+            </section>
 
             {/* กำลังมาแรง */}
-            <div className="bg-white/5 rounded-2xl border border-white/10 p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <span>🔥</span>
-                <h3 className="text-white font-semibold">กำลังมาแรง</h3>
+            <section className="rounded-3xl border border-white/10 bg-white/[0.06] p-6 shadow-2xl backdrop-blur-xl">
+              <h3 className="mb-5 flex items-center gap-3 text-xl font-bold text-white">🔥 กำลังมาแรง</h3>
+              <div className="space-y-4">
+                {sorted.slice(0, 3).map((novel, i) => (
+                  <Link key={novel.id} href={`/novels/${novel.id}`}
+                    className="flex items-center gap-4 hover:opacity-80 transition-all">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-yellow-400/60 text-yellow-300 text-sm">{i + 1}</span>
+                    <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl">
+                      {novel.coverUrl && <img src={novel.coverUrl} alt="" className="w-full h-full object-cover" />}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-semibold text-white text-sm">{novel.title}</p>
+                      <p className="text-xs text-slate-400">{novel.episodes.length} ตอน</p>
+                    </div>
+                    <span className="rounded-lg bg-purple-500/20 px-2 py-1 text-xs text-purple-300">↑{(i + 1) * 12}</span>
+                  </Link>
+                ))}
               </div>
-              {sorted.slice(0, 3).map((novel, i) => (
-                <Link key={novel.id} href={`/novels/${novel.id}`}
-                  className="flex items-center gap-3 py-2.5 border-b border-white/5 last:border-0 hover:opacity-80 transition-all">
-                  <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0">
-                    <img src={novel.coverUrl || ''} alt="" className="w-full h-full object-cover" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-white text-xs font-medium truncate">{novel.title}</p>
-                    <p className="text-gray-500 text-[10px]">{novel.episodes.length} ตอน</p>
-                  </div>
-                  <span className="text-green-400 text-xs">↑{(i + 1) * 12}</span>
-                </Link>
-              ))}
-            </div>
-          </div>
+              <Link href="/top" className="mt-5 block text-purple-300 hover:text-purple-200 text-sm">ดูเพิ่มเติม ›</Link>
+            </section>
+          </aside>
         </div>
       </div>
-    </div>
+    </main>
   )
 }
