@@ -16,13 +16,20 @@ const navItems = [
 export default function Header() {
   const [user, setUser] = useState<User | null>(null)
   const [open, setOpen] = useState(false)
+  const [isPremium, setIsPremium] = useState(false)
   const [search, setSearch] = useState('')
   const ref = useRef<HTMLDivElement>(null)
   const router = useRouter()
   const pathname = usePathname()
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUser(data.user))
+    supabase.auth.getUser().then(async ({ data }) => {
+      setUser(data.user)
+      if (data.user) {
+        const { data: profile } = await supabase.from('profiles').select('is_premium, premium_until').eq('id', data.user.id).single()
+        if (profile?.is_premium && new Date(profile.premium_until) > new Date()) setIsPremium(true)
+      }
+    })
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
       setUser(session?.user ?? null)
     })
@@ -116,7 +123,7 @@ export default function Header() {
                 <div className="absolute right-0 mt-2 w-52 bg-[#13131f] border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
                   <div className="px-4 py-3 border-b border-white/5">
                     <p className="text-white text-sm font-medium truncate">{user.email}</p>
-                    <p className="text-gray-500 text-xs mt-0.5">สมาชิกทั่วไป</p>
+                    <p className="text-xs mt-0.5">{isPremium ? <span className="text-yellow-400">⭐ Premium</span> : <span className="text-gray-500">สมาชิกทั่วไป</span>}</p>
                   </div>
                   <Link href="/profile" onClick={() => setOpen(false)} className="flex items-center gap-3 px-4 py-2.5 hover:bg-white/5 transition-all">
                     <span>🕐</span><span className="text-white text-sm">ประวัติการฟัง</span>
