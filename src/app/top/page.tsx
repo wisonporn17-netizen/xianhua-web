@@ -1,6 +1,7 @@
 import Header from '@/components/Header';
 import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
+import TopThreeCards from '@/components/TopThreeCards';
 import type { Novel } from '@/types';
 
 export const revalidate = 0;
@@ -36,10 +37,6 @@ export default async function TopPage() {
   const playMap = new Map((playCounts || []).map((p: any) => [p.novel_id, p.play_count]));
   const sorted = [...novels].sort((a, b) => (playMap.get(b.id) || 0) - (playMap.get(a.id) || 0));
 
-  // จัดอันดับ 1,2,3 ให้แสดงในลำดับ 2,1,3
-  const display3 = sorted.length >= 3
-    ? [sorted[1], sorted[0], sorted[2]]
-    : sorted;
   const rest = sorted.slice(3, 10);
 
   return (
@@ -71,62 +68,7 @@ export default async function TopPage() {
         <div className="grid gap-8 xl:grid-cols-[1fr_360px]">
           <section>
             {/* Top 3 */}
-            <div className="grid items-end gap-6 md:grid-cols-3">
-              {display3.map((novel, i) => {
-                const rank = i === 1 ? 1 : i === 0 ? 2 : 3;
-                const isFirst = rank === 1;
-                const accent = accentMap[rank - 1];
-                const firstEp = novel.episodes[0];
-                return (
-                  <article key={novel.id}
-                    className={`group relative overflow-hidden rounded-3xl border transition-all duration-300 ${isFirst ? 'border-yellow-400/70 shadow-[0_0_50px_rgba(250,204,21,.22)]' : 'border-white/10 hover:scale-110 hover:z-20 hover:border-yellow-400/70 hover:shadow-[0_0_50px_rgba(250,204,21,.22)]'} bg-white/[0.06]`}>
-                    {novel.coverUrl && (
-                      <img src={novel.coverUrl} alt={novel.title}
-                        className={`w-full object-cover transition duration-500 group-hover:scale-105 ${isFirst ? 'h-[380px] md:h-[430px]' : 'h-[320px] md:h-[390px]'}`} />
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#080811] via-[#080811]/45 to-transparent" />
-
-                    {/* Rank badge */}
-                    <div className="absolute left-5 top-5 flex flex-col items-center">
-                      {rank === 1 && <div className="text-yellow-300 text-xl mb-0.5">★</div>}
-                      <div className={`flex h-14 w-14 items-center justify-center text-2xl font-black text-white shadow-2xl ${rank === 1 ? 'bg-gradient-to-b from-yellow-300 to-yellow-600' : rank === 2 ? 'bg-gradient-to-b from-slate-300 to-slate-500' : 'bg-gradient-to-b from-amber-500 to-amber-800'}`}
-                        style={{clipPath: 'polygon(50% 0%, 90% 20%, 100% 60%, 75% 100%, 25% 100%, 0% 60%, 10% 20%)'}}>
-                        {rank}
-                      </div>
-                    </div>
-
-                    {/* Episode count */}
-                    <div className="absolute right-5 top-5 flex items-center gap-1.5 rounded-full bg-black/55 px-3 py-2 text-sm text-white backdrop-blur-md">
-                      ▶ {novel.episodes.length} ตอน
-                    </div>
-
-                    {/* Content */}
-                    <div className="absolute bottom-0 left-0 right-0 p-6">
-                      <h3 className={`font-bold text-white ${isFirst ? 'text-2xl' : 'text-xl'}`}>{novel.title}</h3>
-                      {novel.subtitle && <p className="mt-1 text-purple-300 text-sm">{novel.subtitle}</p>}
-                      <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-slate-300">
-                        <span className="flex items-center gap-1">⭐ 4.{Math.floor(Math.random() * 3) + 5}</span>
-                        <span className="flex items-center gap-1">📖 {novel.episodes.length} ตอน</span>
-                        {(playMap.get(novel.id) || 0) > 0 && (
-                          <span className="flex items-center gap-1">🎧 {playMap.get(novel.id)} ครั้ง</span>
-                        )}
-                      </div>
-                      {isFirst && firstEp ? (
-                        <Link href={`/novels/${novel.id}/episodes/${firstEp.id}`}
-                          className="mt-5 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-purple-600 to-violet-500 px-7 py-3.5 font-bold text-white shadow-[0_0_30px_rgba(168,85,247,.45)] hover:scale-105 transition">
-                          ▶ ฟังตอนล่าสุด
-                        </Link>
-                      ) : firstEp ? (
-                        <Link href={`/novels/${novel.id}/episodes/${firstEp.id}`}
-                          className="absolute bottom-6 right-6 flex h-14 w-14 items-center justify-center rounded-full border border-purple-300/40 bg-purple-600/30 text-white backdrop-blur-md hover:bg-purple-500 transition">
-                          ▶
-                        </Link>
-                      ) : null}
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
+            <TopThreeCards novels={sorted.slice(0,3)} playMap={Object.fromEntries(playMap)} />
 
             {/* อันดับ 4-10 */}
             {rest.length > 0 && (
