@@ -45,7 +45,7 @@ export default async function TopPage() {
           {sorted.map((n, i) => (
             <div key={n.id} className="relative">
               <NovelCard novel={n} rank={i + 1} />
-              {playMap.get(n.id) ? (
+              {(playMap.get(n.id) || 0) >= 10000 ? (
                 <div className="absolute bottom-16 left-3 bg-black/70 text-white text-[10px] px-2 py-0.5 rounded-full">
                   🎧 {playMap.get(n.id)} ครั้ง
                 </div>
