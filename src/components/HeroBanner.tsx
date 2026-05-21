@@ -19,11 +19,11 @@ export default function HeroBanner({ novels }: { novels: Novel[] }) {
     <section className="relative h-[420px] overflow-hidden">
       <div className="absolute inset-0">
         {featured.coverUrl ? (
-          <img src={featured.coverUrl} alt={featured.title} className="w-full h-full object-cover opacity-40 transition-all duration-700" />
+          <img src={featured.coverUrl} alt={featured.title} className="w-full h-full object-cover opacity-30 sm:opacity-40 transition-all duration-700" />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-purple-900/50 to-black" />
         )}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a0f] via-[#0a0a0f]/70 to-[#0a0a0f]/20" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a0f] via-[#0a0a0f]/80 to-[#0a0a0f]/60 sm:to-[#0a0a0f]/20" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-transparent to-transparent" />
       </div>
 
