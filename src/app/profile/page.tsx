@@ -120,9 +120,7 @@ export default function ProfilePage() {
                 <div>
                   <p className="text-yellow-400 font-bold">Premium Plus</p>
                   <p className="text-gray-400 text-xs">ประสบการณ์การฟังระดับพรีเมียม</p>
-                  <button className="mt-2 text-xs px-3 py-1.5 rounded-full bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 hover:bg-yellow-500/30 transition-all">
-                    จัดการสมาชิก →
-                  </button>
+                  <Link href="/premium" className="mt-2 inline-block text-xs px-3 py-1.5 rounded-full bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 hover:bg-yellow-500/30 transition-all">จัดการสมาชิก →</Link>
                 </div>
               </div>
             </div>
