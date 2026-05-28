@@ -89,7 +89,7 @@ export default async function NovelPage({ params }: Props) {
                   </Link>
                 )}
                 {chapters && chapters.length > 0 && (
-                  <a href={'/novels/' + novel.id + '/read/' + chapters[0].id}
+                  <a href={'#chapters'}
                     className="flex items-center gap-2 px-6 py-3 rounded-full border border-white/20 hover:border-white/40 text-white font-medium transition-all">
                     📖 อ่านนิยาย
                   </a>
@@ -102,7 +102,7 @@ export default async function NovelPage({ params }: Props) {
 
           {/* Episode List */}
           <div className="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 overflow-hidden">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10" id="chapters">
               <div className="flex items-center gap-3">
                 <h2 className="text-white font-semibold">ตอนทั้งหมด</h2>
                 <span className="text-xs text-gray-500 bg-white/5 px-2 py-0.5 rounded-full">{episodes.length} ตอน</span>
