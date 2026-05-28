@@ -12,7 +12,12 @@ interface Props {
 
 export default function ReadingView({ novel, chapter, chapters, prev, next }: Props) {
   const [fontSize, setFontSize] = useState(18)
-  const [theme, setTheme] = useState<'dark' | 'sepia' | 'light'>('dark')
+  const [theme, setTheme] = useState<'dark' | 'sepia' | 'light'>(() => {
+    if (typeof window !== 'undefined') {
+      return (localStorage.getItem('readTheme') as any) || 'dark'
+    }
+    return 'dark'
+  })
   const [showChapters, setShowChapters] = useState(false)
 
   const themes = {
@@ -37,7 +42,7 @@ export default function ReadingView({ novel, chapter, chapters, prev, next }: Pr
             <button onClick={() => setFontSize(f => Math.min(28, f + 2))} className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-sm">A+</button>
             <div className="flex items-center gap-1 ml-2">
               {(['dark', 'sepia', 'light'] as const).map(th => (
-                <button key={th} onClick={() => setTheme(th)}
+                <button key={th} onClick={() => { setTheme(th); localStorage.setItem('readTheme', th) }}
                   className={`w-7 h-7 rounded-full border-2 transition-all ${theme === th ? 'border-purple-400 scale-110' : 'border-white/20'} ${th === 'dark' ? 'bg-[#111118]' : th === 'sepia' ? 'bg-[#f4e8d0]' : 'bg-white'}`} />
               ))}
             </div>
