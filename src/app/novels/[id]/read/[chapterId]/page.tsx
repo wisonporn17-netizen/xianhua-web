@@ -1,4 +1,6 @@
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
+import { createServerClient } from '@supabase/ssr';
 import { supabase } from '@/lib/supabase';
 import Header from '@/components/Header';
 import Link from 'next/link';
@@ -16,6 +18,17 @@ export default async function ReadPage({ params }: Props) {
   if (!chapter) notFound();
 
   const { data: chapters } = await supabase.from('chapters').select('id, chapter_num, title').eq('novel_id', params.id).order('chapter_num');
+
+  if (!chapter.is_free) {
+    const cookieStore = cookies()
+    const supabaseAuth = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      { cookies: { get: (name) => cookieStore.get(name)?.value } }
+    )
+    const { data: { user } } = await supabaseAuth.auth.getUser()
+    if (!user) redirect('/auth/login?next=' + encodeURIComponent('/novels/' + params.id + '/read/' + params.chapterId))
+  }
 
   const idx = (chapters || []).findIndex(c => c.id === params.chapterId);
   const prev = idx > 0 ? chapters![idx - 1] : null;
