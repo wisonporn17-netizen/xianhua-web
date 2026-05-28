@@ -27,7 +27,7 @@ export default async function ReadPage({ params }: Props) {
       { cookies: { get: (name) => cookieStore.get(name)?.value } }
     )
     const { data: { user } } = await supabaseAuth.auth.getUser()
-    if (!user) redirect('/auth/login?next=' + encodeURIComponent('/novels/' + params.id + '/read/' + params.chapterId))
+    if (!user) redirect('/auth?next=' + encodeURIComponent('/novels/' + params.id + '/read/' + params.chapterId))
   }
 
   const idx = (chapters || []).findIndex(c => c.id === params.chapterId);
