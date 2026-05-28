@@ -1,4 +1,5 @@
 'use client'
+import AdminGuard from '@/components/AdminGuard'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
@@ -55,6 +56,7 @@ export default function AdminChaptersPage() {
   const inp = 'w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-purple-500'
 
   return (
+    <AdminGuard>
     <div className="min-h-screen bg-[#0a0a0f] text-white p-6">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center gap-4 mb-6">

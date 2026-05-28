@@ -1,4 +1,5 @@
 'use client'
+import AdminGuard from '@/components/AdminGuard'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 
@@ -63,6 +64,7 @@ export default function AdminPage() {
   const btn = (c: string) => `px-3 py-1.5 rounded text-xs font-medium ${c}`
 
   return (
+    <AdminGuard>
     <div className="min-h-screen bg-[#0a0a0f] text-white p-6">
       <h1 className="text-2xl font-bold mb-6">🛠️ Admin Panel — เซียนหัว</h1>
 
