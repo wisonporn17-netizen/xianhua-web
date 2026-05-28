@@ -70,7 +70,7 @@ export default async function NovelPage({ params }: Props) {
               {/* Stats */}
               <div className="flex items-center gap-4 mb-4 text-sm text-gray-400">
                 <span className="flex items-center gap-1">⭐ <span className="text-white font-medium">{novel.rating || '4.8'}</span></span>
-                <span className="flex items-center gap-1">🎧 <span className="text-white font-medium">{chapters ? chapters.length : 0} ตอน</span></span>
+                <span className="flex items-center gap-1">🎧 <span className="text-white font-medium">{episodes.length} ตอน</span></span>
                 <span className="flex items-center gap-1">📂 <span className="text-white font-medium">{novel.category || 'กำลังภายใน'}</span></span>
               </div>
 
@@ -105,24 +105,24 @@ export default async function NovelPage({ params }: Props) {
             <div className="flex items-center justify-between px-6 py-4 border-b border-white/10" id="chapters">
               <div className="flex items-center gap-3">
                 <h2 className="text-white font-semibold">ตอนทั้งหมด</h2>
-                <span className="text-xs text-gray-500 bg-white/5 px-2 py-0.5 rounded-full">{chapters ? chapters.length : 0} ตอน</span>
+                <span className="text-xs text-gray-500 bg-white/5 px-2 py-0.5 rounded-full">{episodes.length} ตอน</span>
               </div>
             </div>
 
             <div className="divide-y divide-white/5">
-              {(chapters || []).map((chapter: any, index: number) => (
-                <Link key={chapter.id} href={`/novels/${novel.id}/read/${chapter.id}`}
+              {episodes.map((episode: any, index: number) => (
+                <Link key={episode.id} href={`/novels/${novel.id}/episodes/${episode.id}`}
                   className="flex items-center gap-4 px-6 py-4 hover:bg-white/5 transition-all group">
                   <div className="w-8 text-center text-gray-500 text-sm font-mono group-hover:hidden">
-                    {String(chapter.chapter_num).padStart(2, '0')}
+                    {String(index + 1).padStart(2, '0')}
                   </div>
                   <div className="w-8 hidden group-hover:flex items-center justify-center">
                     <svg viewBox="0 0 24 24" className="w-5 h-5 text-purple-400" fill="currentColor"><path d="M8 5.14v14l11-7-11-7z"/></svg>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-white text-sm font-medium truncate group-hover:text-purple-300 transition-colors">{chapter.title}</p>
+                    <p className="text-white text-sm font-medium truncate group-hover:text-purple-300 transition-colors">{episode.title}</p>
                   </div>
-                  {chapter.is_free ? (
+                  {episode.is_free ? (
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-green-600/20 text-green-400 border border-green-500/30 flex-shrink-0">ฟรี</span>
                   ) : (
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-yellow-600/20 text-yellow-400 border border-yellow-500/30 flex-shrink-0">🔒</span>
