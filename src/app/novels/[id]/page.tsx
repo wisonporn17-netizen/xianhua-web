@@ -13,6 +13,12 @@ interface Props { params: { id: string } }
 export default async function NovelPage({ params }: Props) {
   const { data: novel } = await supabase.from('novels').select('*, episodes(*)').eq('id', params.id).single();
   if (!novel) notFound();
+
+  const { data: chapters } = await supabase
+    .from('chapters')
+    .select('id, chapter_num, title, is_free')
+    .eq('novel_id', params.id)
+    .order('chapter_num');
   const episodes = (novel.episodes || []).sort((a: any, b: any) => a.ep_num - b.ep_num);
   const firstEp = episodes[0];
 
@@ -81,6 +87,12 @@ export default async function NovelPage({ params }: Props) {
                     <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor"><path d="M8 5.14v14l11-7-11-7z"/></svg>
                     ฟังตอนแรก
                   </Link>
+                )}
+                {chapters && chapters.length > 0 && (
+                  <a href={'/novels/' + novel.id + '/read/' + chapters[0].id}
+                    className="flex items-center gap-2 px-6 py-3 rounded-full border border-white/20 hover:border-white/40 text-white font-medium transition-all">
+                    📖 อ่านนิยาย
+                  </a>
                 )}
                 <FavoriteButton novelId={novel.id} />
                 <ShareButton title={novel.title} />
