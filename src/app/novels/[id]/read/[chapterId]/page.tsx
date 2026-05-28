@@ -1,4 +1,4 @@
-import { notFound, redirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import Header from '@/components/Header';
 import Link from 'next/link';
@@ -17,13 +17,7 @@ export default async function ReadPage({ params }: Props) {
 
   const { data: chapters } = await supabase.from('chapters').select('id, chapter_num, title').eq('novel_id', params.id).order('chapter_num');
 
-  if (!chapter.is_free) {
-    const { cookies } = await import('next/headers')
-    const cookieStore = cookies()
-    const allCookies = cookieStore.getAll()
-    const hasSession = allCookies.some(c => c.name.includes('supabase') && c.name.includes('auth'))
-    if (!hasSession) redirect('/auth?next=' + encodeURIComponent('/novels/' + params.id + '/read/' + params.chapterId))
-  }
+
 
   const idx = (chapters || []).findIndex(c => c.id === params.chapterId);
   const prev = idx > 0 ? chapters![idx - 1] : null;

@@ -1,5 +1,7 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 
 interface Props {
@@ -11,7 +13,16 @@ interface Props {
 }
 
 export default function ReadingView({ novel, chapter, chapters, prev, next }: Props) {
+  const router = useRouter()
   const [fontSize, setFontSize] = useState(18)
+
+  useEffect(() => {
+    if (!chapter.is_free) {
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        if (!user) router.replace('/auth?next=' + encodeURIComponent(window.location.pathname))
+      })
+    }
+  }, [chapter.id])
   const [theme, setTheme] = useState<'dark' | 'sepia' | 'light'>(() => {
     if (typeof window !== 'undefined') {
       return (localStorage.getItem('readTheme') as any) || 'dark'
