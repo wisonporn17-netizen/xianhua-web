@@ -77,7 +77,13 @@ export default function ReadingView({ novel, chapter, chapters, prev, next }: Pr
           </div>
         </div>
 
-        <div className="leading-relaxed whitespace-pre-wrap" style={{ fontSize: `${fontSize}px`, lineHeight: '2' }}>
+        <div 
+          className="leading-relaxed whitespace-pre-wrap select-none"
+          style={{ fontSize: fontSize + 'px', lineHeight: '2', userSelect: 'none', WebkitUserSelect: 'none' }}
+          onCopy={e => e.preventDefault()}
+          onContextMenu={e => e.preventDefault()}
+          onDragStart={e => e.preventDefault()}
+        >
           {chapter.content}
         </div>
 
