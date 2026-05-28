@@ -1,9 +1,9 @@
 'use client'
-import AdminGuard from '@/components/AdminGuard'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import AdminGuard from '@/components/AdminGuard'
 
-type Episode = { id: string; title: string; ep_num: number; audio_url: string }
+type Episode = { id: string; title: string; ep_num: number; audio_url: string; is_free: boolean }
 type Novel = { id: string; title: string; subtitle: string; description: string; cover_url: string; episodes: Episode[] }
 
 const empty = (): Novel => ({ id: '', title: '', subtitle: '', description: '', cover_url: '', episodes: [] })
@@ -65,66 +65,66 @@ export default function AdminPage() {
 
   return (
     <AdminGuard>
-    <div className="min-h-screen bg-[#0a0a0f] text-white p-6">
-      <h1 className="text-2xl font-bold mb-6">🛠️ Admin Panel — เซียนหัว</h1>
+      <div className="min-h-screen bg-[#0a0a0f] text-white p-6">
+        <h1 className="text-2xl font-bold mb-6">🛠️ Admin Panel — เซียนหัว</h1>
 
-      {msg && <div className="mb-4 p-3 bg-white/10 rounded text-sm">{msg}</div>}
+        {msg && <div className="mb-4 p-3 bg-white/10 rounded text-sm">{msg}</div>}
 
-      {/* เพิ่ม/แก้ไขนิยาย */}
-      <div className="bg-white/5 rounded-xl p-5 mb-8">
-        <h2 className="font-semibold mb-4 text-purple-400">➕ เพิ่ม / แก้ไขนิยาย</h2>
-        <div className="grid grid-cols-2 gap-3 mb-3">
-          <input className={inp} placeholder="ID (เช่น series_5)" value={form.id} onChange={e => setForm({...form, id: e.target.value})} />
-          <input className={inp} placeholder="ชื่อนิยาย" value={form.title} onChange={e => setForm({...form, title: e.target.value})} />
-          <input className={inp} placeholder="Subtitle" value={form.subtitle} onChange={e => setForm({...form, subtitle: e.target.value})} />
-          <input className={inp} placeholder="Cover URL" value={form.cover_url} onChange={e => setForm({...form, cover_url: e.target.value})} />
+        <div className="bg-white/5 rounded-xl p-5 mb-8">
+          <h2 className="font-semibold mb-4 text-purple-400">➕ เพิ่ม / แก้ไขนิยาย</h2>
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            <input className={inp} placeholder="ID" value={form.id} onChange={e => setForm({...form, id: e.target.value})} />
+            <input className={inp} placeholder="ชื่อนิยาย" value={form.title} onChange={e => setForm({...form, title: e.target.value})} />
+            <input className={inp} placeholder="Subtitle" value={form.subtitle} onChange={e => setForm({...form, subtitle: e.target.value})} />
+            <input className={inp} placeholder="Cover URL" value={form.cover_url} onChange={e => setForm({...form, cover_url: e.target.value})} />
+          </div>
+          <textarea className={inp + ' mb-3'} rows={2} placeholder="คำอธิบาย" value={form.description} onChange={e => setForm({...form, description: e.target.value})} />
+          <div className="flex gap-2">
+            <button className={btn('bg-purple-600 hover:bg-purple-500')} onClick={saveNovel}>บันทึก</button>
+            <button className={btn('bg-white/10')} onClick={() => setForm(empty())}>ล้าง</button>
+          </div>
         </div>
-        <textarea className={inp + ' mb-3'} rows={2} placeholder="คำอธิบาย" value={form.description} onChange={e => setForm({...form, description: e.target.value})} />
-        <div className="flex gap-2">
-          <button className={btn('bg-purple-600 hover:bg-purple-500')} onClick={saveNovel}>บันทึก</button>
-          <button className={btn('bg-white/10 hover:bg-white/20')} onClick={() => setForm(empty())}>ล้าง</button>
-        </div>
+
+        <h2 className="font-semibold mb-4 text-purple-400">📚 นิยายทั้งหมด</h2>
+        {novels.map(n => (
+          <div key={n.id} className="bg-white/5 rounded-xl p-5 mb-4">
+            <div className="flex justify-between items-start mb-3">
+              <div>
+                <p className="font-semibold">{n.title}</p>
+                <p className="text-xs text-gray-400">{n.id}</p>
+              </div>
+              <div className="flex gap-2">
+                <button className={btn('bg-blue-600/50')} onClick={() => setForm({...n, episodes: n.episodes || []})}>แก้ไข</button>
+                <button className={btn('bg-red-600/50')} onClick={() => deleteNovel(n.id)}>ลบ</button>
+              </div>
+            </div>
+            <div className="ml-2 border-l border-white/10 pl-4">
+              {(n.episodes || []).map(ep => (
+                <div key={ep.id} className="flex justify-between items-center py-1 text-sm">
+                  <span className="text-gray-300">ตอน {ep.ep_num}: {ep.title} {ep.is_free ? '🆓' : '🔒'}</span>
+                  <button className={btn('bg-red-600/30')} onClick={() => deleteEp(ep.id)}>ลบ</button>
+                </div>
+              ))}
+              {editing === n.id ? (
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <input className={inp} placeholder="ID ตอน" value={epForm.id} onChange={e => setEpForm({...epForm, id: e.target.value})} />
+                  <input className={inp} placeholder="ชื่อตอน" value={epForm.title} onChange={e => setEpForm({...epForm, title: e.target.value})} />
+                  <input className={inp} type="number" placeholder="ตอนที่" value={epForm.ep_num} onChange={e => setEpForm({...epForm, ep_num: +e.target.value})} />
+                  <input className={inp} placeholder="Audio URL" value={epForm.audio_url} onChange={e => setEpForm({...epForm, audio_url: e.target.value})} />
+                  <label className="flex items-center gap-2 text-sm text-white col-span-2">
+                    <input type="checkbox" checked={epForm.is_free} onChange={e => setEpForm({...epForm, is_free: e.target.checked})} />
+                    ฟังฟรี
+                  </label>
+                  <button className={btn('bg-green-600')} onClick={() => saveEp(n.id)}>บันทึก</button>
+                  <button className={btn('bg-white/10')} onClick={() => setEditing(null)}>ยกเลิก</button>
+                </div>
+              ) : (
+                <button className={btn('bg-green-600/30 mt-2')} onClick={() => setEditing(n.id)}>+ เพิ่มตอน</button>
+              )}
+            </div>
+          </div>
+        ))}
       </div>
-
-      {/* รายชื่อนิยาย */}
-      <h2 className="font-semibold mb-4 text-purple-400">📚 นิยายทั้งหมด</h2>
-      {novels.map(n => (
-        <div key={n.id} className="bg-white/5 rounded-xl p-5 mb-4">
-          <div className="flex justify-between items-start mb-3">
-            <div>
-              <p className="font-semibold">{n.title}</p>
-              <p className="text-xs text-gray-400">{n.id}</p>
-            </div>
-            <div className="flex gap-2">
-              <button className={btn('bg-blue-600/50 hover:bg-blue-600')} onClick={() => setForm({...n, episodes: n.episodes || []})}>แก้ไข</button>
-              <button className={btn('bg-red-600/50 hover:bg-red-600')} onClick={() => deleteNovel(n.id)}>ลบ</button>
-            </div>
-          </div>
-
-          {/* Episodes */}
-          <div className="ml-2 border-l border-white/10 pl-4">
-            {(n.episodes || []).map(ep => (
-              <div key={ep.id} className="flex justify-between items-center py-1 text-sm">
-                <span className="text-gray-300">ตอน {ep.ep_num}: {ep.title}</span>
-                <button className={btn('bg-red-600/30 hover:bg-red-600')} onClick={() => deleteEp(ep.id)}>ลบ</button>
-              </div>
-            ))}
-
-            {editing === n.id ? (
-              <div className="mt-3 grid grid-cols-2 gap-2">
-                <input className={inp} placeholder="ID ตอน (เช่น series_5_ep1)" value={epForm.id} onChange={e => setEpForm({...epForm, id: e.target.value})} />
-                <input className={inp} placeholder="ชื่อตอน" value={epForm.title} onChange={e => setEpForm({...epForm, title: e.target.value})} />
-                <input className={inp} type="number" placeholder="ตอนที่" value={epForm.ep_num} onChange={e => setEpForm({...epForm, ep_num: +e.target.value})} />
-                <input className={inp} placeholder="Audio URL" value={epForm.audio_url} onChange={e => setEpForm({...epForm, audio_url: e.target.value})} />
-                <button className={btn('bg-green-600 hover:bg-green-500')} onClick={() => saveEp(n.id)}>บันทึกตอน</button>
-                <button className={btn('bg-white/10')} onClick={() => setEditing(null)}>ยกเลิก</button>
-              </div>
-            ) : (
-              <button className={btn('bg-green-600/30 hover:bg-green-600 mt-2')} onClick={() => setEditing(n.id)}>+ เพิ่มตอน</button>
-            )}
-          </div>
-        </div>
-      ))}
-    </div>
+    </AdminGuard>
   )
 }
