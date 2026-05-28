@@ -22,7 +22,7 @@ export default async function ReadPage({ params }: Props) {
   const next = idx < (chapters?.length || 0) - 1 ? chapters![idx + 1] : null;
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f]">
+    <div className="min-h-screen bg-[#111118]">
       <Header />
       <ReadingView
         novel={novel}
