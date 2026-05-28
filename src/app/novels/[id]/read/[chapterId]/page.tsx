@@ -18,8 +18,11 @@ export default async function ReadPage({ params }: Props) {
   const { data: chapters } = await supabase.from('chapters').select('id, chapter_num, title').eq('novel_id', params.id).order('chapter_num');
 
   if (!chapter.is_free) {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) redirect('/auth?next=' + encodeURIComponent('/novels/' + params.id + '/read/' + params.chapterId))
+    const { cookies } = await import('next/headers')
+    const cookieStore = cookies()
+    const allCookies = cookieStore.getAll()
+    const hasSession = allCookies.some(c => c.name.includes('supabase') && c.name.includes('auth'))
+    if (!hasSession) redirect('/auth?next=' + encodeURIComponent('/novels/' + params.id + '/read/' + params.chapterId))
   }
 
   const idx = (chapters || []).findIndex(c => c.id === params.chapterId);
