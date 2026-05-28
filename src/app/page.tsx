@@ -1,4 +1,5 @@
 import Header from '@/components/Header';
+import BgMusic from '@/components/BgMusic';
 import NovelCard from '@/components/NovelCard';
 import { supabase } from '@/lib/supabase';
 import type { Novel } from '@/types';
