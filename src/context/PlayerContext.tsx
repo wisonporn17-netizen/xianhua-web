@@ -1,4 +1,5 @@
 'use client'
+import { getSignedAudioUrl } from '@/lib/getSignedUrl'
 import { createContext, useContext, useState, useRef, useEffect } from 'react'
 
 interface Track {
@@ -44,7 +45,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     return () => { audio.pause(); audio.src = '' }
   }, [])
 
-  const play = (newTrack: Track, startTime?: number) => {
+  const play = async (newTrack: Track, startTime?: number) => {
     const audio = audioRef.current
     if (!audio) return
 
@@ -57,8 +58,9 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
 
     setIsLoading(true)
     setTrack(newTrack)
+    const signedUrl = await getSignedAudioUrl(newTrack.audioUrl)
     setCurrentTime(startTime || 0)
-    audio.src = newTrack.audioUrl
+    audio.src = signedUrl
 
     const onReady = () => {
       if (startTime && startTime > 0) audio.currentTime = startTime
