@@ -56,6 +56,7 @@ export default async function HomePage() {
           ))}
         </div>
       </main>
-    </div>
+        <BgMusic />
+</div>
   );
 }
