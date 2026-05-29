@@ -12,7 +12,6 @@ const navItems = [
   { label: 'Top Charts', href: '/top' },
   { label: 'ล่าสุด', href: '/latest' },
   { label: '✨ สมัครสมาชิก', href: '/premium' },
-  { label: '✨ สมัครสมาชิก', href: '/premium' },
 ]
 
 export default function Header() {
