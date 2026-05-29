@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/Header'
@@ -11,6 +11,7 @@ const PLANS = [
     price: 99,
     features: ['ฟังนิยายเสียงทุกเรื่อง', 'ทุกตอนไม่มีโฆษณา', 'รองรับทุกอุปกรณ์'],
     color: 'from-purple-600 to-purple-800',
+    recommended: false,
   },
   {
     id: 'all',
@@ -25,11 +26,9 @@ const PLANS = [
 export default function PremiumPage() {
   const [selected, setSelected] = useState<string | null>(null)
   const [step, setStep] = useState<'select' | 'payment' | 'done'>('select')
-  const [payMethod, setPayMethod] = useState<'card' | 'promptpay'>('promptpay')
   const [qrCode, setQrCode] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
-
   const plan = PLANS.find(p => p.id === selected)
 
   const handlePromptPay = async () => {
@@ -61,11 +60,11 @@ export default function PremiumPage() {
           <div className="grid md:grid-cols-2 gap-6">
             {PLANS.map(p => (
               <div key={p.id} onClick={() => setSelected(p.id)}
-                className={\`relative cursor-pointer rounded-2xl p-6 border-2 transition-all \${selected === p.id ? 'border-purple-400 scale-105' : 'border-white/10 hover:border-white/30'} bg-white/5\`}>
+                className={['relative cursor-pointer rounded-2xl p-6 border-2 transition-all bg-white/5', selected === p.id ? 'border-purple-400 scale-105' : 'border-white/10 hover:border-white/30'].join(' ')}>
                 {p.recommended && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-yellow-500 text-black text-xs font-bold rounded-full">แนะนำ</div>
                 )}
-                <div className={\`text-2xl font-bold bg-gradient-to-r \${p.color} bg-clip-text text-transparent mb-1\`}>{p.name}</div>
+                <div className="text-xl font-bold text-white mb-1">{p.name}</div>
                 <div className="text-3xl font-bold text-white mb-4">{p.price} <span className="text-sm text-gray-400">บาท/เดือน</span></div>
                 <ul className="space-y-2">
                   {p.features.map(f => (
@@ -74,20 +73,10 @@ export default function PremiumPage() {
                 </ul>
               </div>
             ))}
-            <div className="md:col-span-2 space-y-3">
-              <div className="flex gap-3">
-                <button onClick={() => setPayMethod('promptpay')}
-                  className={\`flex-1 py-3 rounded-xl border-2 font-medium transition-all \${payMethod === 'promptpay' ? 'border-purple-400 bg-purple-600/20 text-white' : 'border-white/10 text-gray-400'}\`}>
-                  📱 PromptPay
-                </button>
-                <button onClick={() => setPayMethod('card')}
-                  className={\`flex-1 py-3 rounded-xl border-2 font-medium transition-all \${payMethod === 'card' ? 'border-purple-400 bg-purple-600/20 text-white' : 'border-white/10 text-gray-400'}\`}>
-                  💳 บัตรเครดิต
-                </button>
-              </div>
+            <div className="md:col-span-2">
               <button onClick={handlePromptPay} disabled={!selected || loading}
                 className="w-full py-4 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-40 text-white font-bold text-lg transition-all">
-                {loading ? 'กำลังสร้าง QR...' : 'ดำเนินการต่อ →'}
+                {loading ? 'กำลังสร้าง QR...' : '📱 จ่ายด้วย PromptPay →'}
               </button>
             </div>
           </div>
