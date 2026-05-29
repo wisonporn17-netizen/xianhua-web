@@ -137,7 +137,7 @@ export default function ProfilePage() {
               <p className="text-white font-bold">{user.email}</p>
               <p className="text-gray-400 text-sm">สมาชิกทั่วไป · สมาชิกตั้งแต่ {joinDate}</p>
             </div>
-            <Link href="/auth" className="px-4 py-2 rounded-full bg-purple-600 hover:bg-purple-500 text-white text-sm font-medium transition-all">
+            <Link href="/premium" className="px-4 py-2 rounded-full bg-purple-600 hover:bg-purple-500 text-white text-sm font-medium transition-all">
               อัปเกรด Premium
             </Link>
           </div>
