@@ -1,3 +1,5 @@
+export const runtime = 'nodejs'
+
 import { NextRequest, NextResponse } from 'next/server'
 const omise = require('omise')({ secretKey: process.env.OMISE_SECRET_KEY })
 
