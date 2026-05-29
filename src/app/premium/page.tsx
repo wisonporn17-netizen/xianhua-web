@@ -105,20 +105,14 @@ export default function PremiumPage() {
 
         {step === 'slip' && (
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-white mb-2">อัปโหลดสลิปการโอน</h2>
-            <p className="text-gray-400 mb-8">ทีมงานจะตรวจสอบและเปิดใช้งานภายใน 24 ชั่วโมง</p>
-            <label className="block w-full max-w-sm mx-auto border-2 border-dashed border-white/20 rounded-2xl p-10 cursor-pointer hover:border-purple-400 transition-all">
-              <input type="file" accept="image/*" className="hidden" onChange={e => setSlip(e.target.files?.[0] || null)} />
-              {slip ? (
-                <div><p className="text-green-400 font-medium">✅ {slip.name}</p><p className="text-gray-500 text-sm mt-1">คลิกเพื่อเปลี่ยน</p></div>
-              ) : (
-                <div><p className="text-4xl mb-2">📎</p><p className="text-gray-400">คลิกเพื่อเลือกรูปสลิป</p></div>
-              )}
-            </label>
-            <button onClick={handleSlipUpload} disabled={!slip || uploading}
-              className="mt-6 px-8 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-40 text-white font-bold transition-all">
-              {uploading ? 'กำลังอัปโหลด...' : 'ส่งสลิป'}
-            </button>
+            <h2 className="text-2xl font-bold text-white mb-2">ส่งสลิปทาง LINE</h2>
+            <p className="text-gray-400 mb-8">ส่งสลิปการโอนมาที่ LINE OA ของเรา ทีมงานจะเปิดใช้งานภายใน 24 ชั่วโมง</p>
+            <div className="text-6xl mb-6">💬</div>
+            <a href="https://line.me/R/ti/p/@155grmlw" target="_blank" rel="noopener noreferrer"
+              className="inline-flex items-center gap-3 px-8 py-4 rounded-xl bg-[#06C755] hover:bg-[#05a847] text-white font-bold text-lg transition-all">
+              ส่งสลิปทาง LINE @155grmlw
+            </a>
+            <p className="text-gray-500 text-sm mt-4">กรุณาระบุ: ชื่อ-นามสกุล และแพ็กเกจที่เลือก</p>
           </div>
         )}
 
