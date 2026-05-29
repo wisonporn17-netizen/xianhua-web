@@ -11,6 +11,8 @@ const navItems = [
   { label: 'หมวดหมู่', href: '/categories' },
   { label: 'Top Charts', href: '/top' },
   { label: 'ล่าสุด', href: '/latest' },
+  { label: '✨ สมัครสมาชิก', href: '/premium' },
+  { label: '✨ สมัครสมาชิก', href: '/premium' },
 ]
 
 export default function Header() {
