@@ -4,6 +4,8 @@ import { NextRequest, NextResponse } from 'next/server'
 const omise = require('omise')({ secretKey: process.env.OMISE_SECRET_KEY })
 
 export async function POST(req: NextRequest) {
+  console.log('OMISE KEY:', process.env.OMISE_SECRET_KEY?.slice(0, 10))
+  console.log('OMISE KEY:', process.env.OMISE_SECRET_KEY?.slice(0, 10))
   const { plan, userId } = await req.json()
   const prices: Record<string, number> = { audio: 9900, all: 14900 }
   const amount = prices[plan]
