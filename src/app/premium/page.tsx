@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/Header'
@@ -28,6 +28,8 @@ export default function PremiumPage() {
   const [step, setStep] = useState<'select' | 'payment' | 'done'>('select')
   const [qrCode, setQrCode] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [checking, setChecking] = useState(false)
+  const pollRef = useRef<NodeJS.Timeout | null>(null)
   const router = useRouter()
   const plan = PLANS.find(p => p.id === selected)
 
@@ -47,12 +49,33 @@ export default function PremiumPage() {
     setStep('payment')
   }
 
+  // polling เช็ค premium ทุก 4 วินาที
+  useEffect(() => {
+    if (step !== 'payment') return
+    setChecking(true)
+    pollRef.current = setInterval(async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('is_premium')
+        .eq('id', user.id)
+        .single()
+      if (profile?.is_premium) {
+        clearInterval(pollRef.current!)
+        setChecking(false)
+        setStep('done')
+      }
+    }, 4000)
+    return () => { if (pollRef.current) clearInterval(pollRef.current) }
+  }, [step])
+
   return (
     <div className="min-h-screen bg-[#0a0a0f]">
       <Header />
-      <div className="max-w-3xl mx-auto px-4 py-16">
+      <div className="max-w-2xl mx-auto px-4 py-16">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-white mb-3">✨ สมัครสมาชิก</h1>
+          <h1 className="text-4xl font-bold text-white mb-2">✨ สมัครสมาชิก</h1>
           <p className="text-gray-400">เลือกแพ็กเกจที่เหมาะกับคุณ</p>
         </div>
 
@@ -60,15 +83,19 @@ export default function PremiumPage() {
           <div className="grid md:grid-cols-2 gap-6">
             {PLANS.map(p => (
               <div key={p.id} onClick={() => setSelected(p.id)}
-                className={['relative cursor-pointer rounded-2xl p-6 border-2 transition-all bg-white/5', selected === p.id ? 'border-purple-400 scale-105' : 'border-white/10 hover:border-white/30'].join(' ')}>
+                className={['rounded-2xl p-6 cursor-pointer border-2 transition-all',
+                  selected === p.id ? 'border-purple-500 bg-purple-500/10' : 'border-white/10 bg-white/5 hover:border-white/30'
+                ].join(' ')}>
                 {p.recommended && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-yellow-500 text-black text-xs font-bold rounded-full">แนะนำ</div>
+                  <div className="text-xs text-yellow-400 font-bold mb-2">⭐ แนะนำ</div>
                 )}
-                <div className="text-xl font-bold text-white mb-1">{p.name}</div>
-                <div className="text-3xl font-bold text-white mb-4">{p.price} <span className="text-sm text-gray-400">บาท/เดือน</span></div>
-                <ul className="space-y-2">
+                <h3 className="text-xl font-bold text-white mb-1">{p.name}</h3>
+                <div className="text-3xl font-bold text-white mb-4">{p.price}<span className="text-base font-normal text-gray-400"> บาท/เดือน</span></div>
+                <ul className="space-y-2 mb-4">
                   {p.features.map(f => (
-                    <li key={f} className="flex items-center gap-2 text-gray-300 text-sm"><span className="text-green-400">✓</span> {f}</li>
+                    <li key={f} className="flex items-center gap-2 text-gray-300 text-sm">
+                      <span className="text-green-400">✓</span> {f}
+                    </li>
                   ))}
                 </ul>
               </div>
@@ -95,7 +122,11 @@ export default function PremiumPage() {
                 <p className="text-gray-400">กำลังโหลด QR...</p>
               </div>
             )}
-            <p className="text-gray-400 text-sm mb-8">ระบบจะเปิดใช้งานอัตโนมัติหลังชำระเงิน</p>
+            {checking ? (
+              <p className="text-gray-400 text-sm mb-8 animate-pulse">⏳ กำลังรอการยืนยันการชำระเงิน...</p>
+            ) : (
+              <p className="text-gray-400 text-sm mb-8">ระบบจะเปิดใช้งานอัตโนมัติหลังชำระเงิน</p>
+            )}
             <button onClick={() => setStep('done')}
               className="px-8 py-3 rounded-xl bg-green-600 hover:bg-green-500 text-white font-bold transition-all">
               ชำระเงินแล้ว ✓
@@ -106,8 +137,8 @@ export default function PremiumPage() {
         {step === 'done' && (
           <div className="text-center">
             <div className="text-6xl mb-4">🎉</div>
-            <h2 className="text-2xl font-bold text-white mb-2">ขอบคุณ!</h2>
-            <p className="text-gray-400 mb-8">ระบบกำลังตรวจสอบการชำระเงิน จะเปิดใช้งานภายในไม่กี่นาที</p>
+            <h2 className="text-2xl font-bold text-white mb-2">ยินดีต้อนรับสู่ Premium!</h2>
+            <p className="text-gray-400 mb-8">เปิดใช้งานเรียบร้อยแล้ว เพลิดเพลินกับทุกเนื้อหาได้เลย</p>
             <button onClick={() => router.push('/')}
               className="px-8 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold transition-all">
               กลับหน้าหลัก
