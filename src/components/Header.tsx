@@ -28,8 +28,18 @@ export default function Header() {
     supabase.auth.getUser().then(async ({ data }) => {
       setUser(data.user)
       if (data.user) {
+        // เช็คและ expire premium ถ้าหมดอายุแล้ว
+        await fetch('/api/user/check-premium', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: data.user.id }),
+        })
         const { data: profile } = await supabase.from('profiles').select('is_premium, premium_until').eq('id', data.user.id).single()
-        if (profile?.is_premium && new Date(profile.premium_until) > new Date()) setIsPremium(true)
+        if (profile?.is_premium && profile?.premium_until && new Date(profile.premium_until) > new Date()) {
+          setIsPremium(true)
+        } else {
+          setIsPremium(false)
+        }
       }
     })
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
