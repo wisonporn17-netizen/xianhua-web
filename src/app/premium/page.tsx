@@ -23,15 +23,29 @@ const PLANS = [
   },
 ]
 
+declare global {
+  interface Window { OmiseCard: any }
+}
+
 export default function PremiumPage() {
   const [selected, setSelected] = useState<string | null>(null)
   const [step, setStep] = useState<'select' | 'payment' | 'done'>('select')
   const [qrCode, setQrCode] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [checking, setChecking] = useState(false)
+  const [payMethod, setPayMethod] = useState<'promptpay' | 'card'>('promptpay')
   const pollRef = useRef<NodeJS.Timeout | null>(null)
   const router = useRouter()
   const plan = PLANS.find(p => p.id === selected)
+
+  // โหลด Omise.js สำหรับบัตร
+  useEffect(() => {
+    const script = document.createElement('script')
+    script.src = 'https://cdn.omise.co/omise.js'
+    script.async = true
+    document.body.appendChild(script)
+    return () => { document.body.removeChild(script) }
+  }, [])
 
   const handlePromptPay = async () => {
     if (!selected) return
@@ -49,18 +63,44 @@ export default function PremiumPage() {
     setStep('payment')
   }
 
+  const handleCard = async () => {
+    if (!selected) return
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { router.push('/auth'); return }
+
+    window.OmiseCard.configure({
+      publicKey: process.env.NEXT_PUBLIC_OMISE_PUBLIC_KEY || 'pkey_test_67udd0bg2vlwbye857u',
+    })
+
+    window.OmiseCard.open({
+      frameLabel: 'เซียนหัว Xianhua',
+      submitLabel: `ชำระ ${plan?.price} บาท`,
+      currency: 'THB',
+      amount: (plan?.price || 0) * 100,
+      onCreateTokenSuccess: async (token: string) => {
+        setLoading(true)
+        const res = await fetch('/api/payment/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token, plan: selected, userId: user.id }),
+        })
+        const data = await res.json()
+        setLoading(false)
+        if (data.success) setStep('done')
+        else alert('ชำระเงินไม่สำเร็จ: ' + (data.error || 'กรุณาลองใหม่'))
+      },
+    })
+  }
+
   // polling เช็ค premium ทุก 4 วินาที
   useEffect(() => {
-    if (step !== 'payment') return
+    if (step !== 'payment' || payMethod !== 'promptpay') return
     setChecking(true)
     pollRef.current = setInterval(async () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
       const { data: profile } = await supabase
-        .from('profiles')
-        .select('is_premium')
-        .eq('id', user.id)
-        .single()
+        .from('profiles').select('is_premium').eq('id', user.id).single()
       if (profile?.is_premium) {
         clearInterval(pollRef.current!)
         setChecking(false)
@@ -68,7 +108,7 @@ export default function PremiumPage() {
       }
     }, 4000)
     return () => { if (pollRef.current) clearInterval(pollRef.current) }
-  }, [step])
+  }, [step, payMethod])
 
   return (
     <div className="min-h-screen bg-[#0a0a0f]">
@@ -86,9 +126,7 @@ export default function PremiumPage() {
                 className={['rounded-2xl p-6 cursor-pointer border-2 transition-all',
                   selected === p.id ? 'border-purple-500 bg-purple-500/10' : 'border-white/10 bg-white/5 hover:border-white/30'
                 ].join(' ')}>
-                {p.recommended && (
-                  <div className="text-xs text-yellow-400 font-bold mb-2">⭐ แนะนำ</div>
-                )}
+                {p.recommended && <div className="text-xs text-yellow-400 font-bold mb-2">⭐ แนะนำ</div>}
                 <h3 className="text-xl font-bold text-white mb-1">{p.name}</h3>
                 <div className="text-3xl font-bold text-white mb-4">{p.price}<span className="text-base font-normal text-gray-400"> บาท/เดือน</span></div>
                 <ul className="space-y-2 mb-4">
@@ -100,10 +138,29 @@ export default function PremiumPage() {
                 </ul>
               </div>
             ))}
-            <div className="md:col-span-2">
-              <button onClick={handlePromptPay} disabled={!selected || loading}
+
+            {/* วิธีชำระเงิน */}
+            <div className="md:col-span-2 mt-2">
+              <p className="text-gray-400 text-sm mb-3 text-center">เลือกวิธีชำระเงิน</p>
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                <button onClick={() => setPayMethod('promptpay')}
+                  className={['py-3 rounded-xl border-2 font-medium text-sm transition-all',
+                    payMethod === 'promptpay' ? 'border-purple-500 bg-purple-500/10 text-white' : 'border-white/10 text-gray-400 hover:border-white/30'
+                  ].join(' ')}>
+                  📱 PromptPay / QR
+                </button>
+                <button onClick={() => setPayMethod('card')}
+                  className={['py-3 rounded-xl border-2 font-medium text-sm transition-all',
+                    payMethod === 'card' ? 'border-purple-500 bg-purple-500/10 text-white' : 'border-white/10 text-gray-400 hover:border-white/30'
+                  ].join(' ')}>
+                  💳 บัตรเครดิต / เดบิต
+                </button>
+              </div>
+              <button
+                onClick={payMethod === 'promptpay' ? handlePromptPay : handleCard}
+                disabled={!selected || loading}
                 className="w-full py-4 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-40 text-white font-bold text-lg transition-all">
-                {loading ? 'กำลังสร้าง QR...' : '📱 จ่ายด้วย PromptPay →'}
+                {loading ? 'กำลังดำเนินการ...' : payMethod === 'promptpay' ? '📱 จ่ายด้วย PromptPay →' : '💳 จ่ายด้วยบัตร →'}
               </button>
             </div>
           </div>
