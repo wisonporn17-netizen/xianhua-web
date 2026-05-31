@@ -33,12 +33,13 @@ export default function PremiumPage() {
   const [qrCode, setQrCode] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [checking, setChecking] = useState(false)
-  const [payMethod, setPayMethod] = useState<'promptpay' | 'card'>('promptpay')
+  const [payMethod, setPayMethod] = useState<'promptpay' | 'card' | 'truemoney'>('promptpay')
+  const [tmPhone, setTmPhone] = useState('')
+  const [tmError, setTmError] = useState('')
   const pollRef = useRef<NodeJS.Timeout | null>(null)
   const router = useRouter()
   const plan = PLANS.find(p => p.id === selected)
 
-  // โหลด Omise.js สำหรับบัตร
   useEffect(() => {
     const script = document.createElement('script')
     script.src = 'https://cdn.omise.co/omise.js'
@@ -67,11 +68,9 @@ export default function PremiumPage() {
     if (!selected) return
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push('/auth'); return }
-
     window.OmiseCard.configure({
-      publicKey: process.env.NEXT_PUBLIC_OMISE_PUBLIC_KEY || 'pkey_test_67udd0bg2vlwbye857u',
+      publicKey: process.env.NEXT_PUBLIC_OMISE_PUBLIC_KEY || '',
     })
-
     window.OmiseCard.open({
       frameLabel: 'เซียนหัว Xianhua',
       submitLabel: `ชำระ ${plan?.price} บาท`,
@@ -92,7 +91,28 @@ export default function PremiumPage() {
     })
   }
 
-  // polling เช็ค premium ทุก 4 วินาที
+  const handleTrueMoney = async () => {
+    if (!selected) return
+    const phone = tmPhone.replace(/\D/g, '')
+    if (phone.length !== 10) { setTmError('กรุณาใส่เบอร์โทรศัพท์ 10 หลัก'); return }
+    setTmError('')
+    setLoading(true)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { router.push('/auth'); return }
+    const res = await fetch('/api/payment/truemoney', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ plan: selected, userId: user.id, phone }),
+    })
+    const data = await res.json()
+    setLoading(false)
+    if (data.authorizeUri) {
+      window.location.href = data.authorizeUri
+    } else {
+      setTmError('เกิดข้อผิดพลาด: ' + (data.error || 'กรุณาลองใหม่'))
+    }
+  }
+
   useEffect(() => {
     if (step !== 'payment' || payMethod !== 'promptpay') return
     setChecking(true)
@@ -139,10 +159,9 @@ export default function PremiumPage() {
               </div>
             ))}
 
-            {/* วิธีชำระเงิน */}
             <div className="md:col-span-2 mt-2">
               <p className="text-gray-400 text-sm mb-3 text-center">เลือกวิธีชำระเงิน</p>
-              <div className="grid grid-cols-2 gap-3 mb-4">
+              <div className="grid grid-cols-3 gap-3 mb-4">
                 <button onClick={() => setPayMethod('promptpay')}
                   className={['py-3 rounded-xl border-2 font-medium text-sm transition-all',
                     payMethod === 'promptpay' ? 'border-purple-500 bg-purple-500/10 text-white' : 'border-white/10 text-gray-400 hover:border-white/30'
@@ -155,12 +174,37 @@ export default function PremiumPage() {
                   ].join(' ')}>
                   💳 บัตรเครดิต / เดบิต
                 </button>
+                <button onClick={() => setPayMethod('truemoney')}
+                  className={['py-3 rounded-xl border-2 font-medium text-sm transition-all',
+                    payMethod === 'truemoney' ? 'border-orange-500 bg-orange-500/10 text-white' : 'border-white/10 text-gray-400 hover:border-white/30'
+                  ].join(' ')}>
+                  🧡 TrueMoney Wallet
+                </button>
               </div>
+
+              {payMethod === 'truemoney' && (
+                <div className="mb-4">
+                  <input
+                    type="tel"
+                    value={tmPhone}
+                    onChange={e => setTmPhone(e.target.value)}
+                    placeholder="เบอร์โทรที่ผูก TrueMoney (เช่น 0812345678)"
+                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 text-sm"
+                  />
+                  {tmError && <p className="text-red-400 text-xs mt-1">{tmError}</p>}
+                </div>
+              )}
+
               <button
-                onClick={payMethod === 'promptpay' ? handlePromptPay : handleCard}
+                onClick={payMethod === 'promptpay' ? handlePromptPay : payMethod === 'card' ? handleCard : handleTrueMoney}
                 disabled={!selected || loading}
-                className="w-full py-4 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-40 text-white font-bold text-lg transition-all">
-                {loading ? 'กำลังดำเนินการ...' : payMethod === 'promptpay' ? '📱 จ่ายด้วย PromptPay →' : '💳 จ่ายด้วยบัตร →'}
+                className={['w-full py-4 rounded-xl disabled:opacity-40 text-white font-bold text-lg transition-all',
+                  payMethod === 'truemoney' ? 'bg-orange-600 hover:bg-orange-500' : 'bg-purple-600 hover:bg-purple-500'
+                ].join(' ')}>
+                {loading ? 'กำลังดำเนินการ...' :
+                  payMethod === 'promptpay' ? '📱 จ่ายด้วย PromptPay →' :
+                  payMethod === 'card' ? '💳 จ่ายด้วยบัตร →' :
+                  '🧡 จ่ายด้วย TrueMoney →'}
               </button>
             </div>
           </div>
