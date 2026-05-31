@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/Header'
+import { PromptPayIcon, VisaIcon, MastercardIcon, TrueMoneyIcon } from '@/components/PaymentIcons'
 
 const PLANS = [
   {
@@ -10,7 +11,6 @@ const PLANS = [
     name: '🎧 แพ็กเกจฟังนิยาย',
     price: 99,
     features: ['ฟังนิยายเสียงทุกเรื่อง', 'ทุกตอนไม่มีโฆษณา', 'รองรับทุกอุปกรณ์'],
-    color: 'from-purple-600 to-purple-800',
     recommended: false,
   },
   {
@@ -18,7 +18,6 @@ const PLANS = [
     name: '📖 แพ็กเกจครบวงจร',
     price: 149,
     features: ['ทุกอย่างในแพ็กเกจฟัง', 'อ่านนิยายทุกเรื่อง', 'ทุกตอนไม่จำกัด'],
-    color: 'from-yellow-600 to-orange-700',
     recommended: true,
   },
 ]
@@ -162,24 +161,37 @@ export default function PremiumPage() {
             <div className="md:col-span-2 mt-2">
               <p className="text-gray-400 text-sm mb-3 text-center">เลือกวิธีชำระเงิน</p>
               <div className="grid grid-cols-3 gap-3 mb-4">
+
+                {/* PromptPay */}
                 <button onClick={() => setPayMethod('promptpay')}
-                  className={['py-3 rounded-xl border-2 font-medium text-sm transition-all',
-                    payMethod === 'promptpay' ? 'border-purple-500 bg-purple-500/10 text-white' : 'border-white/10 text-gray-400 hover:border-white/30'
+                  className={['py-3 px-2 rounded-xl border-2 transition-all flex flex-col items-center gap-1',
+                    payMethod === 'promptpay' ? 'border-blue-500 bg-blue-500/10' : 'border-white/10 bg-white/5 hover:border-white/30'
                   ].join(' ')}>
-                  📱 PromptPay / QR
+                  <PromptPayIcon size={28} />
+                  <span className="text-xs text-gray-300 font-medium">PromptPay</span>
                 </button>
+
+                {/* บัตรเครดิต */}
                 <button onClick={() => setPayMethod('card')}
-                  className={['py-3 rounded-xl border-2 font-medium text-sm transition-all',
-                    payMethod === 'card' ? 'border-purple-500 bg-purple-500/10 text-white' : 'border-white/10 text-gray-400 hover:border-white/30'
+                  className={['py-3 px-2 rounded-xl border-2 transition-all flex flex-col items-center gap-1',
+                    payMethod === 'card' ? 'border-purple-500 bg-purple-500/10' : 'border-white/10 bg-white/5 hover:border-white/30'
                   ].join(' ')}>
-                  💳 บัตรเครดิต / เดบิต
+                  <div className="flex items-center gap-1">
+                    <VisaIcon size={28} />
+                    <MastercardIcon size={22} />
+                  </div>
+                  <span className="text-xs text-gray-300 font-medium">บัตรเครดิต</span>
                 </button>
+
+                {/* TrueMoney */}
                 <button onClick={() => setPayMethod('truemoney')}
-                  className={['py-3 rounded-xl border-2 font-medium text-sm transition-all',
-                    payMethod === 'truemoney' ? 'border-orange-500 bg-orange-500/10 text-white' : 'border-white/10 text-gray-400 hover:border-white/30'
+                  className={['py-3 px-2 rounded-xl border-2 transition-all flex flex-col items-center gap-1',
+                    payMethod === 'truemoney' ? 'border-orange-500 bg-orange-500/10' : 'border-white/10 bg-white/5 hover:border-white/30'
                   ].join(' ')}>
-                  🧡 TrueMoney Wallet
+                  <TrueMoneyIcon size={28} />
+                  <span className="text-xs text-gray-300 font-medium">TrueMoney</span>
                 </button>
+
               </div>
 
               {payMethod === 'truemoney' && (
@@ -199,7 +211,9 @@ export default function PremiumPage() {
                 onClick={payMethod === 'promptpay' ? handlePromptPay : payMethod === 'card' ? handleCard : handleTrueMoney}
                 disabled={!selected || loading}
                 className={['w-full py-4 rounded-xl disabled:opacity-40 text-white font-bold text-lg transition-all',
-                  payMethod === 'truemoney' ? 'bg-orange-600 hover:bg-orange-500' : 'bg-purple-600 hover:bg-purple-500'
+                  payMethod === 'truemoney' ? 'bg-orange-600 hover:bg-orange-500' :
+                  payMethod === 'card' ? 'bg-purple-600 hover:bg-purple-500' :
+                  'bg-blue-700 hover:bg-blue-600'
                 ].join(' ')}>
                 {loading ? 'กำลังดำเนินการ...' :
                   payMethod === 'promptpay' ? '📱 จ่ายด้วย PromptPay →' :
