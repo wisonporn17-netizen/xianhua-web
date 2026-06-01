@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Footer from '@/components/Footer'
 import './globals.css';
 import { PlayerProvider } from '@/context/PlayerContext';
 import MiniPlayer from '@/components/MiniPlayer';
@@ -31,6 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <PlayerProvider>
           {children}
           <MiniPlayer />
+          <Footer />
         </PlayerProvider>
       </body>
     </html>
