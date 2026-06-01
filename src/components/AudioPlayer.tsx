@@ -150,7 +150,7 @@ export default function AudioPlayer({ audioUrl, title, coverUrl, novelId, episod
         {/* Speed Control */}
         <div className="flex items-center justify-center gap-2 mt-5">
           <span className="text-xs text-gray-500 mr-1">ความเร็ว:</span>
-          {[0.5, 1, 1.5, 2, 2.5, 3].map(rate => (
+          {[0.5, 1, 1.25, 1.5, 2, 2.5, 3].map(rate => (
             <button key={rate} onClick={() => setPlaybackRate(rate)}
               className={['px-2.5 py-1 rounded-lg text-xs font-medium transition-all',
                 playbackRate === rate
