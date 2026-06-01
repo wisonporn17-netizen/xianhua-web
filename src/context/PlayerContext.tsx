@@ -100,7 +100,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <PlayerContext.Provider value={{ track, isPlaying, currentTime, duration, isLoading, play, togglePlay, seek, skip }}>
+    <PlayerContext.Provider value={{ track, isPlaying, currentTime, duration, isLoading, playbackRate, setPlaybackRate, play, togglePlay, seek, skip }}>
       {children}
     </PlayerContext.Provider>
   )
