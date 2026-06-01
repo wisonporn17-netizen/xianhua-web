@@ -123,10 +123,12 @@ export default async function NovelPage({ params }: Props) {
                   <div className="flex-1 min-w-0">
                     <p className="text-white text-sm font-medium truncate group-hover:text-purple-300 transition-colors">{episode.title}</p>
                   </div>
-                  {episode.is_free ? (
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-green-600/20 text-green-400 border border-green-500/30 flex-shrink-0">ฟรี</span>
+                  {episode.access_level === 'free' ? (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-green-600/20 text-green-400 border border-green-500/30 flex-shrink-0">🆓 ฟรี</span>
+                  ) : episode.access_level === 'member' ? (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-blue-600/20 text-blue-400 border border-blue-500/30 flex-shrink-0">👤 สมาชิก</span>
                   ) : (
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-yellow-600/20 text-yellow-400 border border-yellow-500/30 flex-shrink-0">🔒</span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-yellow-600/20 text-yellow-400 border border-yellow-500/30 flex-shrink-0">👑 Premium</span>
                   )}
                   <svg viewBox="0 0 24 24" className="w-4 h-4 text-gray-600 group-hover:text-purple-400 flex-shrink-0 transition-colors" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                     <path d="M9 18l6-6-6-6" />
