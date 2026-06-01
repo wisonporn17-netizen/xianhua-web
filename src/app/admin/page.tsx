@@ -13,6 +13,7 @@ export default function AdminPage() {
   const [form, setForm] = useState<Novel>(empty())
   const [epForm, setEpForm] = useState({ id: '', title: '', ep_num: 1, audio_url: '', is_free: false })
   const [editing, setEditing] = useState<string | null>(null)
+  const [editingEp, setEditingEp] = useState<string | null>(null)
   const [msg, setMsg] = useState('')
 
   const load = async () => {
@@ -51,6 +52,26 @@ export default function AdminPage() {
     setMsg('✅ บันทึกตอนสำเร็จ')
     setEpForm({ id: '', title: '', ep_num: 1, audio_url: '', is_free: false })
     setEditing(null)
+    load()
+  }
+
+  const startEditEp = (ep: Episode) => {
+    setEditingEp(ep.id)
+    setEpForm({ id: ep.id, title: ep.title, ep_num: ep.ep_num, audio_url: ep.audio_url, is_free: ep.is_free })
+  }
+
+  const updateEp = async () => {
+    if (!epForm.title) return setMsg('กรุณาใส่ชื่อตอน')
+    const { error } = await supabase.from('episodes').update({
+      title: epForm.title,
+      ep_num: epForm.ep_num,
+      audio_url: epForm.audio_url,
+      is_free: epForm.is_free,
+    }).eq('id', editingEp!)
+    if (error) return setMsg('Error: ' + error.message)
+    setMsg('✅ แก้ไขตอนสำเร็จ')
+    setEditingEp(null)
+    setEpForm({ id: '', title: '', ep_num: 1, audio_url: '', is_free: false })
     load()
   }
 
@@ -106,7 +127,23 @@ export default function AdminPage() {
               {(n.episodes || []).map(ep => (
                 <div key={ep.id} className="flex justify-between items-center py-1 text-sm">
                   <span className="text-gray-300">ตอน {ep.ep_num}: {ep.title} {ep.is_free ? '🆓' : '🔒'}</span>
-                  <button className={btn('bg-red-600/30')} onClick={() => deleteEp(ep.id)}>ลบ</button>
+                  <div className="flex gap-1">
+                    <button className={btn('bg-blue-600/40')} onClick={() => startEditEp(ep)}>แก้ไข</button>
+                    <button className={btn('bg-red-600/30')} onClick={() => deleteEp(ep.id)}>ลบ</button>
+                  </div>
+                  {editingEp === ep.id && (
+                    <div className="col-span-2 mt-2 grid grid-cols-2 gap-2 bg-white/5 p-3 rounded-lg">
+                      <input className={inp} placeholder="ชื่อตอน" value={epForm.title} onChange={e => setEpForm({...epForm, title: e.target.value})} />
+                      <input className={inp} type="number" placeholder="ตอนที่" value={epForm.ep_num} onChange={e => setEpForm({...epForm, ep_num: +e.target.value})} />
+                      <input className={inp + ' col-span-2'} placeholder="Audio URL" value={epForm.audio_url} onChange={e => setEpForm({...epForm, audio_url: e.target.value})} />
+                      <label className="flex items-center gap-2 text-sm text-white col-span-2">
+                        <input type="checkbox" checked={epForm.is_free} onChange={e => setEpForm({...epForm, is_free: e.target.checked})} />
+                        ฟังฟรี
+                      </label>
+                      <button className={btn('bg-green-600')} onClick={updateEp}>บันทึก</button>
+                      <button className={btn('bg-white/10')} onClick={() => setEditingEp(null)}>ยกเลิก</button>
+                    </div>
+                  )}
                 </div>
               ))}
               {editing === n.id ? (
