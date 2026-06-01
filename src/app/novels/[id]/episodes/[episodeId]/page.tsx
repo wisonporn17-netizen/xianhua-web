@@ -42,6 +42,7 @@ export default async function EpisodePage({ params }: Props) {
 
           <LockedEpisode
             isFree={episode.is_free}
+            accessLevel={episode.access_level || (episode.is_free ? 'free' : 'premium')}
             audioUrl={episode.audio_url}
             title={episode.title}
             coverUrl={novel.cover_url}
