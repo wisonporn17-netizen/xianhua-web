@@ -17,6 +17,8 @@ interface PlayerContextType {
   currentTime: number
   duration: number
   isLoading: boolean
+  playbackRate: number
+  setPlaybackRate: (rate: number) => void
   play: (track: Track, startTime?: number) => void
   togglePlay: () => void
   seek: (time: number) => void
@@ -31,6 +33,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
+  const [playbackRate, setPlaybackRateState] = useState(1)
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
   useEffect(() => {
@@ -44,6 +47,11 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     audio.addEventListener('ended', () => setIsPlaying(false))
     return () => { audio.pause(); audio.src = '' }
   }, [])
+
+  const setPlaybackRate = (rate: number) => {
+    setPlaybackRateState(rate)
+    if (audioRef.current) audioRef.current.playbackRate = rate
+  }
 
   const play = async (newTrack: Track, startTime?: number) => {
     const audio = audioRef.current

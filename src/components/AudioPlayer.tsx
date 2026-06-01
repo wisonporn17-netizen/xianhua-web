@@ -16,7 +16,7 @@ interface AudioPlayerProps {
 }
 
 export default function AudioPlayer({ audioUrl, title, coverUrl, novelId, episodeId, novelTitle }: AudioPlayerProps) {
-  const { track, isPlaying, currentTime, duration, isLoading, play, togglePlay, seek, skip } = usePlayer();
+  const { track, isPlaying, currentTime, duration, isLoading, playbackRate, setPlaybackRate, play, togglePlay, seek, skip } = usePlayer();
   const userIdRef = useRef<string | null>(null);
   const currentTimeRef = useRef(0);
 
@@ -145,6 +145,21 @@ export default function AudioPlayer({ audioUrl, title, coverUrl, novelId, episod
             </div>
             <span className="text-[11px] font-medium">+10s</span>
           </button>
+        </div>
+
+        {/* Speed Control */}
+        <div className="flex items-center justify-center gap-2 mt-5">
+          <span className="text-xs text-gray-500 mr-1">ความเร็ว:</span>
+          {[0.5, 1, 1.5, 2, 2.5, 3].map(rate => (
+            <button key={rate} onClick={() => setPlaybackRate(rate)}
+              className={['px-2.5 py-1 rounded-lg text-xs font-medium transition-all',
+                playbackRate === rate
+                  ? 'bg-purple-600 text-white'
+                  : 'bg-white/5 text-gray-400 hover:bg-white/10'
+              ].join(' ')}>
+              {rate}x
+            </button>
+          ))}
         </div>
       </div>
     </div>
