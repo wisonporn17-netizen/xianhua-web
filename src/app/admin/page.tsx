@@ -57,7 +57,7 @@ export default function AdminPage() {
   const deleteEp = async (id: string) => {
     if (!confirm('ยืนยันลบตอนนี้?')) return
     await supabase.from('listening_history').delete().eq('episode_id', id)
-    await supabase.from('favorites').delete().eq('episode_id', id)
+    await supabase.from('chapters').delete().eq('episode_id', id)
     const { error } = await supabase.from('episodes').delete().eq('id', id)
     if (error) { setMsg('Error: ' + error.message); return }
     setMsg('🗑️ ลบตอนแล้ว')
